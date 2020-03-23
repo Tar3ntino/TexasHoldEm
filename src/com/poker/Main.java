@@ -1,7 +1,7 @@
 package com.poker;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
-import java.lang.Exception;
 
 public class Main {
 
@@ -10,7 +10,7 @@ public class Main {
         // Déclaration des variables
         Scanner sc = new Scanner(System.in);
         int nombreDeJoueurs = 0;
-        String[] mainJoueur = {"Card1","Card2"};
+        String[] mainJoueur = {"Card1", "Card2"};
         Card indicetirage = new Card();
 
         System.out.println("♠️♥️POKER♦️♣️ - TEXAS HOLDEM ");
@@ -20,8 +20,8 @@ public class Main {
             System.out.println("Saisissez un nombre de joueurs (2 Min. / 10   Max.) :");
             try {
                 nombreDeJoueurs = sc.nextInt();
-            } catch (Exception e) {
-                System.out.println("connard, message=" + e.getMessage());
+            } catch (InputMismatchException e) {
+                System.out.println("La saisie est incorrecte : " + e.getMessage());
                 sc.nextLine();
                 continue;
             }
@@ -31,7 +31,7 @@ public class Main {
 
         System.out.println("Préparation des " + nombreDeJoueurs + " joueurs à la table");
 
-//Création d'un nombre de joueur selon la saisie de l'utilisateur
+        //Création d'un nombre de joueur selon la saisie de l'utilisateur
 
         for (int i = 0; i < (nombreDeJoueurs); i++) {
             System.out.println("Saisir le nom de player" + i + " :");
@@ -43,6 +43,7 @@ public class Main {
         // Creation d'un paquet de 52 cartes
         Paquet paquet = new Paquet();
         paquet.display();
+
 
         // DEMARRAGE DE LA PARTIE
         // TIRAGE AU SORT
