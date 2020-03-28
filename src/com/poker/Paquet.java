@@ -1,19 +1,20 @@
 package com.poker;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
-
 
 public class Paquet {
 
     // Qu'est ce qu'un Paquet ? C'est un tableau de cartes
     // Declaration de variable d'instance >> Variable d'instance car la valeur de cette variable n'est pas propre
     // a l'instance, l'objet. 2 paquets distincts peuvent avoir des cartes differentes.
+
     private Card[] paquetDeCartes;
-    private static final int nb_iterations =3;
+    private static final int nb_iterations = 3;
 
     public Paquet() {                                                   // Constructeur d'un paquet de cartes vides pouvant accueillir 52 cartes
-        System.out.println("Creation d'un paquet de 52 cartes");        // Initialisation de variables pour le constructeur :
+        System.out.println("Creation d'un paquet de 52 cartes...");        // Initialisation de variables pour le constructeur :
         Couleur[] allCouleurs = Couleur.class.getEnumConstants();       // Il nous faut un tableau contenant toutes les possibilites d'enum "Couleur" + "Rang"
         Rang[] allRangs = Rang.class.getEnumConstants();
 
@@ -31,28 +32,27 @@ public class Paquet {
         }
 
         this.paquetDeCartes = paquetDeCartes;                           // la variable de la classe paquet prend la valeur de la variable paquet de carte du constructeur
-                                                                        // this.variable de ma classe
-
+        // this.variable de ma classe
         melanger();                                                     // Melanger le jeu de cartes
     }                                                                   // fin du constructeur
 
-    public void melanger(){
-        Random r = new Random();
-        for (int i=0; i<nb_iterations;i++)
-        {
-            for (int j=0; j<this.paquetDeCartes.length;j++)
+    private void melanger() {
+        Random r = new Random();                                        // On cree un objet Random afin de pouvoir appeler par la suite la methode
+        for (int i = 0; i < nb_iterations; i++)                              // NextInt qui va chercher un entier entre 0 et le parametre qui suit
+        {                                                               // 1ere boucle : on reitere i fois le battage de cartes, ici 3 fois
+            for (int j = 0; j < this.paquetDeCartes.length; j++)             // 2eme boucle : on passe en revue toutes les cartes restantes du paquet
             {
                 echanger(r.nextInt(this.paquetDeCartes.length), r.nextInt(this.paquetDeCartes.length));
-            }
-        }
+            }                                                           // a chaque tour de boucle, la methode est appelee et definie 2 entiers aleatoires
+        }                                                               // en parametres entre 0 et le nombre de cartes restantes = la taille du paquet
     }
 
     public void echanger(int i, int j)                                  // Echange 2 cartes du paquet
     {                                                                   // @param i l'indice de la premiere carte a echanger
         Card temp;                                                      // @param j l'indice de la seconde carte a echanger
         temp = this.paquetDeCartes[i];
-        this.paquetDeCartes[i]=this.paquetDeCartes[j];
-        this.paquetDeCartes[j]=temp;
+        this.paquetDeCartes[i] = this.paquetDeCartes[j];
+        this.paquetDeCartes[j] = temp;
     }
 
     public void display() {                                             // Creation d'une methode Display pour voir toutes les cartes de notre paquet
@@ -66,17 +66,24 @@ public class Paquet {
         return this.paquetDeCartes.length;
     }
 
+    public Card[] getPaquetDeCartes() {
+        return paquetDeCartes;
+    }
+
+    public Card[] piocher(int n) {                       // La methode CopyofRange de la classe Arrays va copier les
+            Card[] pioche = Arrays.copyOfRange(this.paquetDeCartes, 0, n); // elements du tableau original, index de debut a copier, index de fin a copier. Dans ce cas CopyOfRange va jusqu'a n pour pouvoir attribuer la seconde carte dans la main du joueur
+            this.paquetDeCartes = Arrays.copyOfRange(this.paquetDeCartes, n, this.paquetDeCartes.length); // Paquet est maintenant lisible a partir du rang n car on vient de copier les rangs 0 a n-1 dans un autre paquet (main) de pioche temporaire
+            System.out.println("lecture des 2 premieres cartes dans pioche :");
+            System.out.println(pioche[0]); //test
+            System.out.println(pioche[1]); //test
+    return pioche;
+    }
+
+    public void setPaquetDeCartes(Card[] paquetDeCartes) {
+        this.paquetDeCartes = paquetDeCartes;
+    }
 
 }
-
-
-
-
-
-
-
-
-
 
 
 //    public void getNombresDeCartes() {

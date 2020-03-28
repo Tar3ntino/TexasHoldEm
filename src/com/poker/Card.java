@@ -7,33 +7,29 @@ public class Card {
     // Declaration de variable :
     Rang rang;
     Couleur couleur;
-
     Rang[] tabRang = {Rang.As, Rang.Roi, Rang.Dame, Rang.Valet, Rang.Dix, Rang.Neuf, Rang.Huit, Rang.Sept, Rang.Six, Rang.Cinq, Rang.Quatre, Rang.Trois, Rang.Deux};
     Couleur[] tabCouleur = {Couleur.Coeur, Couleur.Carreau, Couleur.Pique, Couleur.Trefle};
 
-    // Default Constructor :
-    public Card() {
-        System.out.println("Creation d'une carte");
-    }
+    public Card(){};
 
     // Constructor with parameters :
     public Card(Rang pRang, Couleur pCouleur) {
         // Les variables rentrees en parametres vont servir a etre stockees
-        System.out.println("Creation d'une carte avec des parametres :");
         this.rang = pRang;           // creation de la variable de stockage qui va prendre la valeur du parametre rang
         this.couleur = pCouleur;     // creation de la variable de stockage qui va prendre la valeur du parametre couleur
-        System.out.println(this.rang.name() + " de " + this.couleur.name());
-    }
+        }
 
-    // Accessors = Getters des variables d'instances (Parameters of constructor)
+    //***** Getter - Accesseurs ******
     public Rang getRang() {
         return this.rang;
     }
     public Couleur getCouleur() {
         return this.couleur;
     }
+    public Rang[] getTabRang() { return tabRang; }
+    public Couleur[] getTabCouleur() { return tabCouleur; }
 
-    // Mutators = Setters des variables d'instances (Parameters of constructor)
+    //******* Setter - Mutateurs *******
     public void setCard(Rang pRang, Couleur pCouleur) {
         rang = pRang;
         couleur = pCouleur;
