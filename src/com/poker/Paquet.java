@@ -71,12 +71,9 @@ public class Paquet {
     }
 
     public Card[] piocher(int n) {                       // La methode CopyofRange de la classe Arrays va copier les
-            Card[] pioche = Arrays.copyOfRange(this.paquetDeCartes, 0, n); // elements du tableau original, index de debut a copier, index de fin a copier. Dans ce cas CopyOfRange va jusqu'a n pour pouvoir attribuer la seconde carte dans la main du joueur
-            this.paquetDeCartes = Arrays.copyOfRange(this.paquetDeCartes, n, this.paquetDeCartes.length); // Paquet est maintenant lisible a partir du rang n car on vient de copier les rangs 0 a n-1 dans un autre paquet (main) de pioche temporaire
-            System.out.println("lecture des 2 premieres cartes dans pioche :");
-            System.out.println(pioche[0]); //test
-            System.out.println(pioche[1]); //test
-    return pioche;
+        Card[] pioche = Arrays.copyOfRange(this.paquetDeCartes, 0, n); // elements du tableau original, index de debut a copier, index de fin a copier. Dans ce cas CopyOfRange va jusqu'a n pour pouvoir attribuer la seconde carte dans la main du joueur
+        this.paquetDeCartes = Arrays.copyOfRange(this.paquetDeCartes, n, this.paquetDeCartes.length); // Paquet est maintenant lisible a partir du rang n car on vient de copier les rangs 0 a n-1 dans un autre paquet (main) de pioche temporaire
+        return pioche;
     }
 
     public void setPaquetDeCartes(Card[] paquetDeCartes) {
