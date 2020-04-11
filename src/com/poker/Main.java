@@ -165,8 +165,12 @@ public class Main {
             for (int i = 0; i < joueurs.size(); i++) {
                 joueurs.get(i).getCardsCommunesAndHandPlayer()[6] = cartesCommunes[4];
                 System.out.println("Combinaison du joueur " + joueurs.get(i).getNamePlayer() + " : " + joueurs.get(i).getCardsCommunesAndHandPlayer()[0] + joueurs.get(i).getCardsCommunesAndHandPlayer()[1] + " + " + joueurs.get(i).getCardsCommunesAndHandPlayer()[2] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[3] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[4] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[5] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[6]);
-                System.out.println("Check Flush :" + joueurs.get(i).checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer()));
+                System.out.println("Check Two Pair :" + joueurs.get(i).checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()));
+                System.out.println("Check Three of a Kind :" + joueurs.get(i).checkThreeOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()));
                 System.out.println("Check Straight :" + joueurs.get(i).checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()));
+                System.out.println("Check Flush :" + joueurs.get(i).checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer()));
+                System.out.println("Check Four of a Kind :" + joueurs.get(i).checkFourOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()));
+                System.out.println("Check Straight Flush :" + joueurs.get(i).checkStraightFlush(joueurs.get(i).getCardsCommunesAndHandPlayer(),joueurs.get(i).checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()),joueurs.get(i).checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer())));
             }
 
 
