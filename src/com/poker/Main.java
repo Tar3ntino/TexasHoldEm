@@ -7,17 +7,19 @@ public class Main {
 
     public static void main(String[] args) {
 
+        // ************************************
         // Déclaration des attributs
+        // ************************************
         Scanner sc = new Scanner(System.in);
         int nombreDeJoueurs = 0;
         int newPot = 0;
         int potTotal = newPot;
         int tourDeParole = 0;
 
-
+        // ************************************
         // INITIALISATION du nombre de joueurs :
         // Faire tant que celui ci n'est pas compris entre 2 et 10
-
+        // ************************************
         do {
             try {
                 System.out.println("♠️♥️POKER♦️♣️ - TEXAS HOLDEM ");
@@ -31,8 +33,11 @@ public class Main {
 
         Joueur[] listJoueur = new Joueur[nombreDeJoueurs];  // Creation d'une liste de Joueurs
 
-        // INITIALISATION DE LA PARTIE : Creation d'un paquet, de "N" joueurs, affectation des "Noms de Joueurs",
+        // ************************************
+        // INITIALISATION DE LA PARTIE :
+        // Creation d'un paquet, de "N" joueurs, affectation des "Noms de Joueurs",
         // attribution des mains Joueurs du paquet melange
+        // ************************************
 
         System.out.println("Préparation de " + nombreDeJoueurs + " joueurs à la table ... ");
         Paquet paquet = new Paquet();
@@ -60,7 +65,9 @@ public class Main {
             System.out.println("-----------------------------");
         }
 
+        // ************************************
         // TIRAGE AU SORT du DEALER et attribution des Small Blind et Big Blind
+        // ************************************
 
         Random startDealer = new Random();
         int dealer = startDealer.nextInt(nombreDeJoueurs);
@@ -68,13 +75,19 @@ public class Main {
         int bigBlind = smallBlind + 1;
         LinkedList<Joueur> joueurs = new LinkedList<>();
 
+        // ************************************
         // On remplit l'objet LinkedList de joueurs avec une boucle For qui recupere tous les joueurs :
+        // ************************************
+
         for (Joueur joueur : listJoueur) {
             joueurs.add(joueur);
         }
-
         System.out.println("Tirage Dealer : " + listJoueur[dealer].getNamePlayer() + " a la distribution");
+
+        // ************************************
         // On place les i joueurs de debut de tableau se trouvant avant la position du dealer + dealer compris en fin de "pile joueur"
+        // ************************************
+
         int rankToBeCancelled = 0; //
         for (int i = 0; i <= dealer; i++) {
             joueurs.add(nombreDeJoueurs + i, listJoueur[i]);
@@ -85,7 +98,10 @@ public class Main {
             joueurs.removeFirst(); // suppression des n joueurs avant le dealer de la tete de la pile
         }
 
+        // ************************************
         // Mise en queue de pile le SB :
+        // ************************************
+
         joueurs.getFirst().setBetPlayer(20); // on set la mise du joueur SB situe en tete de pile
         potTotal = potTotal + 20;
         joueurs.getFirst().setChipsPlayer(joueurs.getFirst().getChipsPlayer() - joueurs.getFirst().getBetPlayer()); // on met a jour son compteur de jetons
@@ -94,7 +110,10 @@ public class Main {
         joueurs.addLast(joueurs.getFirst()); // on place le joueur SB actuellement en tete de pile > en queue de pile
         joueurs.removeFirst();
 
+        // ************************************
         // Mise en queue de pile le BB :
+        // ************************************
+
         joueurs.getFirst().setBetPlayer(40);// on set la mise du joueur BB situe en tete de pile
         potTotal = potTotal + 40;
         joueurs.getFirst().setChipsPlayer(joueurs.getFirst().getChipsPlayer() - joueurs.getFirst().getBetPlayer()); // on met a jour son compteur de jetons
@@ -105,24 +124,36 @@ public class Main {
 
         System.out.println("Valeur du Pot Total : " + potTotal);
 
+        // ************************************
         // 1er TOUR DE PAROLE PRE FLOP
+        // ************************************
+
         do {
             System.out.println("1er TOUR DE PAROLE PRE FLOP");
             tourDeParole = 1;
+
+            // ************************************
             //Option 1 : avoir 2 listes de joueurs, une pour conserver la relance en premier,
             // l'autre pour conserver la BB en premier
             //Option 2 : avoir une seule liste, mais au lieu de vérifier les mises du premier
             //et du dernier, on vérifie toutes les mises. Du coup pas besoin de modifier la liste
             //quand qqn relance
+            // ************************************
 
             potTotal = toursDeTableJusquaAccordMise(joueurs, potTotal, tourDeParole);
 
+            // ************************************
             // *** TIRAGE DU FLOP ***
+            // ************************************
+
             Card[] cartesCommunes = tirageFlop(paquet);
             joueurs.addFirst(joueurs.getLast()); // On remet la BB en tete de liste
             joueurs.removeLast(); // // Code ne marche pas dans le cas ou l'un joueur autre relance et tout le monde call car le dernier joueur sera en queue de pile a la place de la BB
 
+            // ************************************
             // *** COMBINAISONS PAR JOUEUR RESTANT EN JEU SUR LA MAIN
+            // ************************************
+
             for (int i = 0; i < joueurs.size(); i++) {
                 joueurs.get(i).getCardsCommunesAndHandPlayer()[2] = cartesCommunes[0];
                 joueurs.get(i).getCardsCommunesAndHandPlayer()[3] = cartesCommunes[1];
@@ -130,20 +161,28 @@ public class Main {
                 System.out.println("Combinaison du joueur " + joueurs.get(i).getNamePlayer() + " : " + joueurs.get(i).getCardsCommunesAndHandPlayer()[0] + joueurs.get(i).getCardsCommunesAndHandPlayer()[1] + " + " + joueurs.get(i).getCardsCommunesAndHandPlayer()[2] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[3] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[4] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[5] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[6]);
             }
 
+            // ************************************
             // 2e TOUR DE PAROLE POST FLOP
+            // ************************************
+
             System.out.println("---------------------------------------------------------");
             System.out.println("2e TOUR DE PAROLE POST FLOP");
             tourDeParole = 2;
             resetBetPlayer(joueurs);
             potTotal = toursDeTableJusquaAccordMise(joueurs, potTotal, tourDeParole);
 
-
+            // ************************************
             // *** TIRAGE DE LA TURN ***
+            // ************************************
+
             tirageTurn(paquet, cartesCommunes);
 //            joueurs.addFirst(joueurs.getLast()); // On remet la BB en tete de liste
 //            joueurs.removeLast(); // Code ne marche pas dans le cas ou l'un joueur autre relance et tout le monde call car le dernier joueur sera en queue de pile a la place de la BB
 
+            // ************************************
             // *** COMBINAISONS PAR JOUEUR RESTANT EN JEU SUR LA MAIN
+            // ************************************
+
             for (int i = 0; i < joueurs.size(); i++) {
                 joueurs.get(i).getCardsCommunesAndHandPlayer()[5] = cartesCommunes[3];
                 System.out.println("Combinaison du joueur " + joueurs.get(i).getNamePlayer() + " : " + joueurs.get(i).getCardsCommunesAndHandPlayer()[0] + joueurs.get(i).getCardsCommunesAndHandPlayer()[1] + " + " + joueurs.get(i).getCardsCommunesAndHandPlayer()[2] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[3] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[4] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[5] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[6]);
@@ -155,24 +194,36 @@ public class Main {
             resetBetPlayer(joueurs);
             potTotal = toursDeTableJusquaAccordMise(joueurs, potTotal, tourDeParole);
 
+            // ************************************
             // *** TIRAGE DE LA TURN ***
+            // ************************************
+
             tirageRiver(paquet, cartesCommunes);
 //            joueurs.addFirst(joueurs.getLast()); // On remet la BB en tete de liste
 //            joueurs.removeLast(); // Code ne marche pas dans le cas ou l'un joueur autre relance et tout le monde call car le dernier joueur sera en queue de pile a la place de la BB
 
-
+            // ************************************
             // *** COMBINAISONS PAR JOUEUR RESTANT EN JEU SUR LA MAIN
+            // ************************************
+
+            CombinaisonUtil combinaisonGagnanteJoueur;
+
             for (int i = 0; i < joueurs.size(); i++) {
                 joueurs.get(i).getCardsCommunesAndHandPlayer()[6] = cartesCommunes[4];
-                System.out.println("Combinaison du joueur " + joueurs.get(i).getNamePlayer() + " : " + joueurs.get(i).getCardsCommunesAndHandPlayer()[0] + joueurs.get(i).getCardsCommunesAndHandPlayer()[1] + " + " + joueurs.get(i).getCardsCommunesAndHandPlayer()[2] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[3] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[4] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[5] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[6]);
-                System.out.println("Check Two Pair :" + joueurs.get(i).checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()));
-                System.out.println("Check Three of a Kind :" + joueurs.get(i).checkThreeOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()));
-                System.out.println("Check Straight :" + joueurs.get(i).checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()));
-                System.out.println("Check Flush :" + joueurs.get(i).checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer()));
-                System.out.println("Check Four of a Kind :" + joueurs.get(i).checkFourOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()));
-                System.out.println("Check Straight Flush :" + joueurs.get(i).checkStraightFlush(joueurs.get(i).getCardsCommunesAndHandPlayer(),joueurs.get(i).checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()),joueurs.get(i).checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer())));
-            }
 
+                System.out.println("Resultat du joueur 1 :" + CombinaisonUtil.getCombinaison(joueurs.get(i)).getValueCombinaison());
+
+                System.out.println("Combinaison du joueur " + joueurs.get(i).getNamePlayer() + " : " + joueurs.get(i).getCardsCommunesAndHandPlayer()[0] + joueurs.get(i).getCardsCommunesAndHandPlayer()[1] + " + " + joueurs.get(i).getCardsCommunesAndHandPlayer()[2] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[3] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[4] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[5] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[6]);
+                System.out.println("Check Carte Haute :" + CombinaisonUtil.checkHighCard(joueurs.get(i).getCardsCommunesAndHandPlayer()).isUneCombinaisonValide()+"\t Force :" + CombinaisonUtil.checkHighCard(joueurs.get(i).getCardsCommunesAndHandPlayer()).getValueCombinaison() +" \t Kicker1 :" + CombinaisonUtil.checkHighCard(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker1() + " \t \t \t \t \t Kicker2 :" + CombinaisonUtil.checkHighCard(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker2()+" \t Kicker3 :" + CombinaisonUtil.checkHighCard(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker3()+" \t Kicker4 :" + CombinaisonUtil.checkHighCard(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker4()+" \t Kicker5 :" + CombinaisonUtil.checkHighCard(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker5());
+                System.out.println("Check Paire :" + CombinaisonUtil.checkOnePair(joueurs.get(i).getCardsCommunesAndHandPlayer()).isUneCombinaisonValide()+"\t \t \t Force :" + CombinaisonUtil.checkOnePair(joueurs.get(i).getCardsCommunesAndHandPlayer()).getValueCombinaison() +" \t Paire :" + CombinaisonUtil.checkOnePair(joueurs.get(i).getCardsCommunesAndHandPlayer()).getHauteur() + " \t \t \t \t \t Kicker1 :" + CombinaisonUtil.checkOnePair(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker1()+" \t Kicker2 :" + CombinaisonUtil.checkOnePair(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker2()+" \t Kicker3 :" + CombinaisonUtil.checkOnePair(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker3());
+                System.out.println("Check Double Paire :" + CombinaisonUtil.checkTwoPair(joueurs.get(i).getCardsCommunesAndHandPlayer()).isUneCombinaisonValide()+"\t Force :" + CombinaisonUtil.checkTwoPair(joueurs.get(i).getCardsCommunesAndHandPlayer()).getValueCombinaison() +" \t Paire1 :" + CombinaisonUtil.checkTwoPair(joueurs.get(i).getCardsCommunesAndHandPlayer()).getHauteur() +" \t Paire2 :" + CombinaisonUtil.checkTwoPair(joueurs.get(i).getCardsCommunesAndHandPlayer()).getHauteur2() + " \t Kicker :" + CombinaisonUtil.checkTwoPair(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker1());
+                System.out.println("Check Brelan :" + CombinaisonUtil.checkThreeOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()).isUneCombinaisonValide()+ "\t \t \t Force :" + CombinaisonUtil.checkThreeOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()).getValueCombinaison() +" \t Brelan :" + CombinaisonUtil.checkThreeOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()).getHauteur() + " \t \t \t \t \t Kicker1 :" + CombinaisonUtil.checkThreeOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker1()+ " \t Kicker2 :" + CombinaisonUtil.checkThreeOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker2());
+                System.out.println("Check Suite :" + CombinaisonUtil.checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()).isUneCombinaisonValide() + "\t \t \t Force :" + CombinaisonUtil.checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()).getValueCombinaison() +" \t Suite :" + CombinaisonUtil.checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()).getHauteur());
+                System.out.println("Check Couleur :" + CombinaisonUtil.checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer()).isUneCombinaisonValide() + "\t     Force :" + CombinaisonUtil.checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer()).getValueCombinaison() +" \t Couleur :" + CombinaisonUtil.checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer()).getHauteur()); // If true, afficher Flush Jack High
+                System.out.println("Check Full :" + CombinaisonUtil.checkFullHouse(joueurs.get(i).getCardsCommunesAndHandPlayer()).isUneCombinaisonValide() + "\t \t \t Force :" + CombinaisonUtil.checkFullHouse(joueurs.get(i).getCardsCommunesAndHandPlayer()).getValueCombinaison() +" \t Full :" + CombinaisonUtil.checkFullHouse(joueurs.get(i).getCardsCommunesAndHandPlayer()).getHauteur() +  " \t \t \t \t \t Kicker :" + CombinaisonUtil.checkFullHouse(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker1());
+                System.out.println("Check Carre :" + CombinaisonUtil.checkFourOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()).isUneCombinaisonValide() + " \t \t \t Force :" + CombinaisonUtil.checkFourOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()).getValueCombinaison() + " \t Carre :" + CombinaisonUtil.checkFourOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()).getRangCarre() + " \t \t \t \t \t Kicker :" + CombinaisonUtil.checkFourOfAKind(joueurs.get(i).getCardsCommunesAndHandPlayer()).getKicker1());
+                System.out.println("Check Quinte Flush :" + CombinaisonUtil.checkStraightFlush(joueurs.get(i).getCardsCommunesAndHandPlayer(),CombinaisonUtil.checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()),CombinaisonUtil.checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer())).isUneCombinaisonValide() + " \t Force :" + CombinaisonUtil.checkStraightFlush(joueurs.get(i).getCardsCommunesAndHandPlayer(),CombinaisonUtil.checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()),CombinaisonUtil.checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer())).getValueCombinaison() + " \t Quinte Flush :" + CombinaisonUtil.checkStraightFlush(joueurs.get(i).getCardsCommunesAndHandPlayer(),CombinaisonUtil.checkStraight(joueurs.get(i).getCardsCommunesAndHandPlayer()),CombinaisonUtil.checkFlush(joueurs.get(i).getCardsCommunesAndHandPlayer())).getHauteur());
+            }
 
             System.out.println("---------------------------------------------------------");
             System.out.println("4e et dernier TOUR DE PAROLE POST RIVER");
