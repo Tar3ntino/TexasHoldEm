@@ -252,7 +252,8 @@ public class Main {
             System.out.println(" * Creation d'un time Bank Joueur 30s");
             System.out.println(" * Creation d'une structure de blind");
 
-        } while (joueurs.size() != 1 && tourDeParole < 4); // Fin de la main / mene : Faire tant qu'il ne reste plus qu'un joueur, il remportera donc le pot
+        } while (joueurs.size() != 1 && tourDeParole < 4);
+        // Fin de la main / Tant qu'il reste plus qu'un joueur, il remportera donc le pot
 
         System.out.println(" Sortie du do while");
         System.out.println("Affichage de la liste des joueurs sur la Main N.2 :" + joueurs);
