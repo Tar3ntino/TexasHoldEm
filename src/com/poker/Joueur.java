@@ -1,9 +1,5 @@
 package com.poker;
 
-import org.junit.platform.engine.support.descriptor.FileSystemSource;
-
-import java.util.*;
-
 public class Joueur {
 
     String namePlayer;

@@ -2,17 +2,19 @@ package com.poker;
 
 import java.util.*;
 import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static void main(String[] args) {
+    private static int potTotal = 0;
+    private static boolean isTimerOver = false;
+
+    public static void main(String[] args) throws InterruptedException {
 
         // ************************************
         // Déclaration des attributs
         // ************************************
 
-        int newPot = 0;
-        int potTotal = newPot;
         int tourDeParole = 0;
 
         // ************************************
@@ -129,7 +131,7 @@ public class Main {
         do {
             System.out.println(" [ PRE-FLOP ] ");
             tourDeParole = 1;
-            potTotal = toursDeTableJusquaAccordMise(joueurs, potTotal, tourDeParole);
+            toursDeTableJusquaAccordMise(joueurs, tourDeParole);
 
             // ************************************
             //Option 1 : avoir 2 listes de joueurs, une pour conserver la relance en premier,
@@ -166,7 +168,7 @@ public class Main {
             System.out.println(" [ FLOP ] ");
             tourDeParole = 2;
             resetBetPlayer(joueurs);
-            potTotal = toursDeTableJusquaAccordMise(joueurs, potTotal, tourDeParole);
+            toursDeTableJusquaAccordMise(joueurs, tourDeParole);
 
             // ************************************
             // *** TIRAGE DE LA TURN ***
@@ -189,7 +191,7 @@ public class Main {
             System.out.println(" [ TURN ] ");
             tourDeParole = 3;
             resetBetPlayer(joueurs);
-            potTotal = toursDeTableJusquaAccordMise(joueurs, potTotal, tourDeParole);
+            toursDeTableJusquaAccordMise(joueurs, tourDeParole);
 
             // ************************************
             // *** TIRAGE DE LA RIVER ***
@@ -203,7 +205,7 @@ public class Main {
             System.out.println(" [ RIVER ] ");
             tourDeParole = 4;
             resetBetPlayer(joueurs);
-            potTotal = toursDeTableJusquaAccordMise(joueurs, potTotal, tourDeParole);
+            toursDeTableJusquaAccordMise(joueurs, tourDeParole);
 
             // ************************************
             // *** SHOWDOWN / ABBATAGE ***
@@ -348,11 +350,10 @@ public class Main {
         System.out.println("---------------------------------------------------------");
     }
 
-    private static int toursDeTableJusquaAccordMise(LinkedList<Joueur> joueurs, int potTotal, int tourDeParole) {
-        potTotal = premierTourDeTable(joueurs, potTotal, tourDeParole); // renvoie un int potPotal
+    private static void toursDeTableJusquaAccordMise(LinkedList<Joueur> joueurs, int tourDeParole) throws InterruptedException {
+        premierTourDeTable(joueurs, tourDeParole); // renvoie un int potPotal
         System.out.println("Valeur du pot :" + potTotal);
-        potTotal = tourDeParolePostFlop(joueurs, potTotal, tourDeParole);
-        return potTotal;
+        tourDeParolePostFlop(joueurs, tourDeParole);
     }
 
     private static void resetBetPlayer(LinkedList<Joueur> joueurs) {
@@ -361,98 +362,92 @@ public class Main {
         }
     }
 
-    private static int tourDeParolePostFlop(LinkedList<Joueur> joueurs, int potTotal, int tourDeParole) {
+    private static void tourDeParolePostFlop(LinkedList<Joueur> joueurs, int tourDeParole) throws InterruptedException {
         while (joueurs.getFirst().getBetPlayer() != joueurs.getLast().getBetPlayer()) { // Faire tant que la mise du joueur a parler n'est pas au niveau du dernier ayant parle
-            potTotal = tourDeParole(joueurs, potTotal, tourDeParole);
+            tourDeParole(joueurs, tourDeParole);
         }
-        return potTotal;
     }
 
-    private static int premierTourDeTable(LinkedList<Joueur> joueurs, int potTotal, int tourDeParole) {
+    private static void premierTourDeTable(LinkedList<Joueur> joueurs, int tourDeParole) throws InterruptedException {
         int nbJoueurs = joueurs.size();
         for (int i = 0; i < nbJoueurs; i++) {
-            potTotal = tourDeParole(joueurs, potTotal, tourDeParole);
+            tourDeParole(joueurs, tourDeParole);
         }
-        return potTotal;
     }
 
-    private static int tourDeParole(LinkedList<Joueur> joueurs, int potTotal, int tourDeParole) {
+    private static void tourDeParole(LinkedList<Joueur> joueurs, int tourDeParole) throws InterruptedException {
         int choix = 0;
         do {
-            try {
-                System.out.println(joueurs.getFirst().getNamePlayer() + " Jetons :" + joueurs.getFirst().getChipsPlayer() + " - [Pot Total:" + potTotal + "]" + "\n" + " a la parole : 1/ Passer 2/ Suivre (" + (joueurs.getLast().getBetPlayer() - joueurs.getFirst().getBetPlayer() + ") 3/ Relancer (>=" + ((joueurs.getLast().getBetPlayer()) == 0 ? (40 + ")") : (2 * joueurs.getLast().getBetPlayer()) - joueurs.getFirst().getBetPlayer() + ")")));
-                Scanner choixJoueur = new Scanner(System.in);
-                Timer chrono = new Timer();
-
-                chrono.schedule(new TimerTask() {
-                    int time = 30;
-                    @Override
-                    public void run() {
-                        System.out.print(time + "s ... ");
-                        if (time == 0) {
-                            cancel();
-                        }
-                        time=time-10;
-                    }
-                }, 1000, 10000);
-                choix = choixJoueur.nextInt();
-            } catch (InputMismatchException e) {
-                System.out.println("La saisie est incorrecte");
+            System.out.println(joueurs.getFirst().getNamePlayer() + " Jetons :" + joueurs.getFirst().getChipsPlayer() + " - [Pot Total:" + potTotal + "]" + "\n" + " a la parole : 1/ Passer 2/ Suivre (" + (joueurs.getLast().getBetPlayer() - joueurs.getFirst().getBetPlayer() + ") 3/ Relancer (>=" + ((joueurs.getLast().getBetPlayer()) == 0 ? (40 + ")") : (2 * joueurs.getLast().getBetPlayer()) - joueurs.getFirst().getBetPlayer() + ")")));
+            ConsoleInput choixJoueur = new ConsoleInput(30, 5);
+            String stringJoueur = choixJoueur.readLine();
+            if (stringJoueur == null) {
+                //le joueur n'a pas répondu
+                choix = 1;
+            } else {
+                try {
+                    //On controle que la string récupérée est bien convertible en int
+                    choix = Integer.valueOf(stringJoueur);
+                } catch (NumberFormatException e) {
+                    System.out.println("La saisie est incorrecte");
+                }
             }
-
-            switch (choix) {
-                case 1:
-                    System.out.println(joueurs.getFirst() + " passe son tour ");
-                    joueurs.removeFirst();
-                    break;
-
-                case 2:
-                    int add = joueurs.getLast().getBetPlayer() - joueurs.getFirst().getBetPlayer();
-                    joueurs.getFirst().setBetPlayer(joueurs.getFirst().getBetPlayer() + add);
-                    joueurs.getFirst().setChipsPlayer(joueurs.getFirst().getChipsPlayer() - add);
-                    System.out.println(joueurs.getFirst() + " suit " + add + " jetons");
-                    joueurs.addLast(joueurs.getFirst());
-                    joueurs.removeFirst();
-                    potTotal = potTotal + add;
-                    break;
-
-                case 3:
-                    Scanner chx = new Scanner(System.in);
-                    int relance = 0;
-
-                    if (tourDeParole == 1) {
-                        System.out.print(joueurs.getFirst() + " decide de relancer : \n A combien souhaitez vous relancer ? ");
-                        relance = chx.nextInt();
-                        while (relance < (2 * joueurs.getLast().getBetPlayer()) - joueurs.getFirst().getBetPlayer() || relance > joueurs.getFirst().getChipsPlayer()) {
-                            System.out.println("Vous devez relancer au minimum le double de la mise actuelle OU vous n'avez pas assez de jetons ");
-                            relance = chx.nextInt();
-                        }
-                    } else if (tourDeParole == 2) {
-                        System.out.print(joueurs.getFirst() + " decide de relancer : \n A combien souhaitez vous relancer ? ");
-                        relance = chx.nextInt();
-                        while ((relance < ((joueurs.getLast().getBetPlayer()) == 0 ? (40) : (2 * joueurs.getLast().getBetPlayer()) - joueurs.getFirst().getBetPlayer())) || (relance > joueurs.getFirst().getChipsPlayer())) {
-                            System.out.println("Vous devez relancer au minimum la valeur de la BB Post Flop OU le double de la mise actuelle OU vous n'avez pas assez de jetons ");
-                            relance = chx.nextInt();
-                        }
-                    } else if (tourDeParole == 3 || tourDeParole == 4) {
-                        System.out.print(joueurs.getFirst() + " decide de relancer : \n A combien souhaitez vous relancer ? ");
-                        relance = chx.nextInt();
-                        while ((relance < ((joueurs.getLast().getBetPlayer()) == 0 ? (2 * 40) : (2 * joueurs.getLast().getBetPlayer()) - joueurs.getFirst().getBetPlayer())) || (relance > joueurs.getFirst().getChipsPlayer())) {
-                            System.out.println("Vous devez relancer au minimum la valeur de 2BB au 3e/4e tour de parole OU le double de la mise actuelle OU vous n'avez pas assez de jetons ");
-                            relance = chx.nextInt();
-                        }
-                    }
-                    joueurs.getFirst().setBetPlayer(joueurs.getFirst().getBetPlayer() + relance);
-                    joueurs.getFirst().setChipsPlayer(joueurs.getFirst().getChipsPlayer() - relance);
-                    System.out.println(joueurs.getFirst() + " relance a " + joueurs.getFirst().getBetPlayer() + " jetons");
-                    joueurs.addLast(joueurs.getFirst());
-                    joueurs.removeFirst();
-                    potTotal = potTotal + relance;
-                    break;
-            }
-            System.out.println(potTotal);
-            return potTotal;
+            doActionJoueur(joueurs, tourDeParole, choix);
         } while (choix != 1 && choix != 2 && choix != 3); // Faire tant que le choix de l'utilisateur ne correspond pas aux actions proposees
+    }
+
+    private static void doActionJoueur(LinkedList<Joueur> joueurs, int tourDeParole, int choix) {
+        switch (choix) {
+            case 1:
+                System.out.println(joueurs.getFirst() + " passe son tour ");
+                joueurs.removeFirst();
+                break;
+
+            case 2:
+                int add = joueurs.getLast().getBetPlayer() - joueurs.getFirst().getBetPlayer();
+                joueurs.getFirst().setBetPlayer(joueurs.getFirst().getBetPlayer() + add);
+                joueurs.getFirst().setChipsPlayer(joueurs.getFirst().getChipsPlayer() - add);
+                System.out.println(joueurs.getFirst() + " suit " + add + " jetons");
+                joueurs.addLast(joueurs.getFirst());
+                joueurs.removeFirst();
+                potTotal = potTotal + add;
+                break;
+
+            case 3:
+                Scanner chx = new Scanner(System.in);
+                int relance = 0;
+
+                if (tourDeParole == 1) {
+                    System.out.print(joueurs.getFirst() + " decide de relancer : \n A combien souhaitez vous relancer ? ");
+                    relance = chx.nextInt();
+                    while (relance < (2 * joueurs.getLast().getBetPlayer()) - joueurs.getFirst().getBetPlayer() || relance > joueurs.getFirst().getChipsPlayer()) {
+                        System.out.println("Vous devez relancer au minimum le double de la mise actuelle OU vous n'avez pas assez de jetons ");
+                        relance = chx.nextInt();
+                    }
+                } else if (tourDeParole == 2) {
+                    System.out.print(joueurs.getFirst() + " decide de relancer : \n A combien souhaitez vous relancer ? ");
+                    relance = chx.nextInt();
+                    while ((relance < ((joueurs.getLast().getBetPlayer()) == 0 ? (40) : (2 * joueurs.getLast().getBetPlayer()) - joueurs.getFirst().getBetPlayer())) || (relance > joueurs.getFirst().getChipsPlayer())) {
+                        System.out.println("Vous devez relancer au minimum la valeur de la BB Post Flop OU le double de la mise actuelle OU vous n'avez pas assez de jetons ");
+                        relance = chx.nextInt();
+                    }
+                } else if (tourDeParole == 3 || tourDeParole == 4) {
+                    System.out.print(joueurs.getFirst() + " decide de relancer : \n A combien souhaitez vous relancer ? ");
+                    relance = chx.nextInt();
+                    while ((relance < ((joueurs.getLast().getBetPlayer()) == 0 ? (2 * 40) : (2 * joueurs.getLast().getBetPlayer()) - joueurs.getFirst().getBetPlayer())) || (relance > joueurs.getFirst().getChipsPlayer())) {
+                        System.out.println("Vous devez relancer au minimum la valeur de 2BB au 3e/4e tour de parole OU le double de la mise actuelle OU vous n'avez pas assez de jetons ");
+                        relance = chx.nextInt();
+                    }
+                }
+                joueurs.getFirst().setBetPlayer(joueurs.getFirst().getBetPlayer() + relance);
+                joueurs.getFirst().setChipsPlayer(joueurs.getFirst().getChipsPlayer() - relance);
+                System.out.println(joueurs.getFirst() + " relance a " + joueurs.getFirst().getBetPlayer() + " jetons");
+                joueurs.addLast(joueurs.getFirst());
+                joueurs.removeFirst();
+                potTotal = potTotal + relance;
+                break;
+        }
+        System.out.println("potTotal = " + potTotal);
     }
 }
 

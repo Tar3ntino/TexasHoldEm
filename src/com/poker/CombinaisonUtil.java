@@ -223,7 +223,7 @@ public class CombinaisonUtil {
 
         Map<Rang, Integer> countByRang = countByRang(cardsCommunesAndHandPlayer); // on declare une variable Map qui va associer et stocker les variables rangs et les int
         Set<Rang> rangs = countByRang.keySet();// on collecte les rangs du tirage des 7 cartes du board
-        Set<Rang> allRangs = Set.of(Rang.Deux, Rang.Trois, Rang.Quatre, Rang.Cinq, Rang.Six, Rang.Sept, Rang.Huit, Rang.Neuf, Rang.Dix, Rang.Valet, Rang.Dame, Rang.Roi, Rang.As);
+        Rang[] allRangs = Rang.values();
 
         if (rangs.size() < 5) {
             return null;
@@ -251,7 +251,7 @@ public class CombinaisonUtil {
     }
 
     private static Resultat checkSuiteHauteur5(Set<Rang> rangs) {
-        Set<Rang> fromAsToCinq = Set.of(Rang.As, Rang.Deux, Rang.Trois, Rang.Quatre, Rang.Cinq);
+        Set<Rang> fromAsToCinq = new HashSet<>(Arrays.asList(Rang.As, Rang.Deux, Rang.Trois, Rang.Quatre, Rang.Cinq));
         if (rangs.containsAll(fromAsToCinq)) {
             Resultat resultat = new Resultat();
             resultat.setCombinaison(Combinaison.Suite);
@@ -263,7 +263,7 @@ public class CombinaisonUtil {
         else return null;
     }
 
-    private static void getHauteurSuite(Set<Rang> allRangs, List<Integer> hauteurs, int i, Resultat resultat) {
+    private static void getHauteurSuite(Rang[] allRangs, List<Integer> hauteurs, int i, Resultat resultat) {
         for (Rang allRang : allRangs) {
             if (allRang.getValue() == hauteurs.get(i + 4)) {
                 List<Rang> hauteursetKickers = new ArrayList<>();
