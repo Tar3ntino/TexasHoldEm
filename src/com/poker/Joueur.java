@@ -78,8 +78,6 @@ public class Joueur {
         this.cardsCommunesAndHandPlayer = cardsCommunesAndHandPlayer;
     }
 
-
-
 }// Fin de la classe Joueur
 
 

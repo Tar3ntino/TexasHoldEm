@@ -8,7 +8,7 @@ public class CombinaisonUtil {
     // HAND RANKINGS :          Force Combinaison : Constructeur Resultat renvoye :
     //      1.Straight Flush        Force: 9        Int [Value Combinaison, Hauteur quinte flush]
     //      2.Four of a kind        Force: 8        Int [Value Combinaison, Hauteur carre, Kicker 1]
-    //      3.Full House            Force: 7        Int [Value Combinaison, Hauteur brelan, Hauteur paire , Kicker 1]
+    //      3.Full House            Force: 7        Int [Value Combinaison, Hauteur brelan, Hauteur paire]
     //      4.Flush                 Force: 6        Int [Value Combinaison, Hauteur couleur]
     //      5.Straight              Force: 5        Int [Value Combinaison, Hauteur suite]
     //      6.Three of a kind       Force: 4        Int [Value Combinaison, Hauteur brelan, Kicker 1, Kicker 2]
@@ -24,15 +24,16 @@ public class CombinaisonUtil {
     // ************************************
 
     public static Resultat checkStraightFlush(Card[] cardsCommunesAndHandPlayer, Resultat resultatCheckStraight, Resultat resultatCheckFlush) {
-        Resultat resultat = new Resultat();
-
-        if (resultatCheckStraight.isUneCombinaisonValide() == true && resultatCheckFlush.isUneCombinaisonValide() == true) {
-            resultat.setUneCombinaisonValide(true);
-            resultat.setValueCombinaison(9);
+        if (resultatCheckStraight != null && resultatCheckFlush != null) {
+            Resultat resultat = new Resultat();
+            resultat.setCombinaison(Combinaison.QuinteFlush);
+            List<Rang> hauteur = new ArrayList<>();
+            hauteur.add(resultatCheckStraight.getHauteurEtKickers().get(0));
             resultat.setCouleurMax(resultatCheckFlush.getCouleurMax());
-            resultat.setHauteur(resultatCheckStraight.getHauteur());
+            resultat.setHauteurEtKickers(hauteur);
+            return resultat;
         }
-        return resultat;
+        return null;
     }
 
     // ************************************
@@ -58,12 +59,12 @@ public class CombinaisonUtil {
     // ************************************
 
     public static Resultat checkFourOfAKind(Card[] cardsCommunesAndHandPlayer) {
-        Resultat resultat = new Resultat();
         Map<Rang, Integer> countByRang = countByRang(cardsCommunesAndHandPlayer);
         ArrayList<Integer> counts = new ArrayList<>(countByRang.values());
         Collections.sort(counts, Comparator.reverseOrder());
 
         if (counts.get(0) == 4) {
+            Resultat resultat = new Resultat();
             Rang rangLePlusNombreux = null;
             int countMax = 0;
             for (Rang rang : countByRang.keySet()) {    // On parcourt le set de rang existant
@@ -72,9 +73,9 @@ public class CombinaisonUtil {
                     rangLePlusNombreux = rang;
                 }
             }
-            resultat.setUneCombinaisonValide(true);
-            resultat.setValueCombinaison(8);
-            resultat.setRangCarre(rangLePlusNombreux); // et l'on setup le Rang du Carre
+            resultat.setCombinaison(Combinaison.Carre);
+            List<Rang> hauteurs = new ArrayList<>();
+            hauteurs.add(rangLePlusNombreux);
             countByRang.keySet().remove(rangLePlusNombreux); // on enleve ensuite le rang du Set de rang
 
             Rang kicker1 = null;
@@ -89,11 +90,11 @@ public class CombinaisonUtil {
                     kickervalue = rang1.getValue();
                 }
             }
-            resultat.setKicker1(kicker1);
-        } else {
-            resultat.setUneCombinaisonValide(false);
+            hauteurs.add(kicker1);
+            resultat.setHauteurEtKickers(hauteurs);
+            return resultat;
         }
-        return resultat;
+        return null;
     }
 
     // ************************************
@@ -101,21 +102,54 @@ public class CombinaisonUtil {
     // ************************************
 
     public static Resultat checkFullHouse(Card[] cardsCommunesAndHandPlayer) {
-        Resultat resultat = new Resultat();
+
         Map<Rang, Integer> countByRang = countByRang(cardsCommunesAndHandPlayer); // on declare une variable Map qui va associer et stocker les variables rangs et les int
         ArrayList<Integer> counts = new ArrayList<>(countByRang.values()); // on declare une variable Arraylist pour stocker les int afin de pouvoir les classer
         Collections.sort(counts, Comparator.reverseOrder()); // on appelle une classe utilitaire Collections avec la methode de tri "sort"
         if (counts.get(0) == 3 && counts.get(1) >= 2) {
-            resultat.setUneCombinaisonValide(true);
-            resultat.setValueCombinaison(7);
-            Rang hauteurBrelan = CombinaisonUtil.checkThreeOfAKind(cardsCommunesAndHandPlayer).getHauteur();
-            resultat.setHauteur(hauteurBrelan);
-            Rang hauteurPaire = CombinaisonUtil.checkOnePair(cardsCommunesAndHandPlayer).getHauteur();
-            resultat.setKicker1(hauteurPaire);
+            Resultat resultat = new Resultat();
+            resultat.setCombinaison(Combinaison.Full);
+            List<Rang> hauteursetKickers = new ArrayList<>();
+            getHauteurBrelan(countByRang, hauteursetKickers);
+            getHauteurPaire(countByRang, hauteursetKickers);
+            resultat.setHauteurEtKickers(hauteursetKickers);// et l'on setup la hauteur du Brelan
+
+            return resultat;
         }
-        ; // On renvoie un booleen true si la condition est respectee
-        return resultat;
+        return null;
     } // Fin de la methode Full
+
+    private static void getHauteurPaire(Map<Rang, Integer> countByRang, List<Rang> hauteursetKickers) {
+        Rang rangLePlusNombreux = null;
+        int countMax = 0;
+        int valueMaxPaire = 0;
+
+        for (Rang rang : countByRang.keySet()) {    // On parcourt le set de rang existant
+            if (rang.getValue() > valueMaxPaire && countByRang.get(rang) >= countMax) { // Si l'on a un int de rang plus important que le precedent enregistre
+                countMax = countByRang.get(rang); // on MAJ la valeur countMax
+                if (countByRang.get(rang) == 2) {
+                    valueMaxPaire = rang.getValue();
+                    rangLePlusNombreux = rang;
+                }
+            }
+        }
+        hauteursetKickers.add(rangLePlusNombreux);
+        countByRang.keySet().remove(rangLePlusNombreux); // on enleve ensuite le rang du Set de rang
+    }
+
+    private static void getHauteurBrelan(Map<Rang, Integer> countByRang, List<Rang> hauteursetKickers) {
+        Rang rangLePlusNombreux = null;
+        int countMax = 0;
+
+        for (Rang rang : countByRang.keySet()) {    // On parcourt le set de rang existant
+            if (countByRang.get(rang) > countMax) { // Si l'on a un int de rang plus important que le precedent enregistre
+                countMax = countByRang.get(rang); // on MAJ la valeur countMax
+                rangLePlusNombreux = rang;
+            }
+        }
+        hauteursetKickers.add(rangLePlusNombreux);
+        countByRang.keySet().remove(rangLePlusNombreux);// on enleve ensuite le rang du Set de rang
+    }
 
     private static Map<Rang, Integer> countByRang(Card[] cardsCommunesAndHandPlayer) {
         Map<Rang, Integer> countByRang = new HashMap<>();
@@ -133,27 +167,30 @@ public class CombinaisonUtil {
     // ************************************
 
     public static Resultat checkFlush(Card[] cardsCommunesAndHandPlayer) {
-        Resultat resultat = new Resultat();
+
         Map<Couleur, Integer> countByColor = countByColor(cardsCommunesAndHandPlayer);
         ArrayList<Integer> counts = new ArrayList<>(countByColor.values()); // on recupere les valeurs de comptage couleur
         Collections.sort(counts, Comparator.reverseOrder()); // on les classe decroissant
 
-        setCouleurMax(resultat, countByColor);
-
         if (counts.get(0) >= 5) {
-            resultat.setUneCombinaisonValide(true);
-            resultat.setValueCombinaison(6);
+            Resultat resultat = new Resultat();
+            setCouleurMax(resultat, countByColor);
+            resultat.setCombinaison(Combinaison.Couleur);
 
             int hauteurMax = 0;
 
             for (Card card : cardsCommunesAndHandPlayer) {
                 if (card.getCouleur() == resultat.getCouleurMax() && card.getRang().getValue() > hauteurMax) {
                     hauteurMax = card.getRang().getValue();
-                    resultat.setHauteur(card.getRang());
+
+                    List<Rang> hauteursetKickers = new ArrayList<>();
+                    hauteursetKickers.add(card.getRang());
+                    resultat.setHauteurEtKickers(hauteursetKickers);// et l'on setup la hauteur de la flush
                 }
             }
+            return resultat;
         }
-        return resultat;
+        return null;
     }
 
     private static void setCouleurMax(Resultat resultat, Map<Couleur, Integer> countByColor) {
@@ -183,39 +220,57 @@ public class CombinaisonUtil {
     // ************************************
 
     public static Resultat checkStraight(Card[] cardsCommunesAndHandPlayer) {
-        Resultat resultat = new Resultat();
 
         Map<Rang, Integer> countByRang = countByRang(cardsCommunesAndHandPlayer); // on declare une variable Map qui va associer et stocker les variables rangs et les int
         Set<Rang> rangs = countByRang.keySet();// on collecte les rangs du tirage des 7 cartes du board
         Set<Rang> allRangs = Set.of(Rang.Deux, Rang.Trois, Rang.Quatre, Rang.Cinq, Rang.Six, Rang.Sept, Rang.Huit, Rang.Neuf, Rang.Dix, Rang.Valet, Rang.Dame, Rang.Roi, Rang.As);
 
         if (rangs.size() < 5) {
-            resultat.setUneCombinaisonValide(false);
-            resultat.setValueCombinaison(0);
+            return null;
         }
-        Set<Rang> fromAsToCinq = Set.of(Rang.As, Rang.Deux, Rang.Trois, Rang.Quatre, Rang.Cinq);
-        if (rangs.containsAll(fromAsToCinq)) {
-            resultat.setUneCombinaisonValide(true);
-            resultat.setValueCombinaison(5);
-            resultat.setHauteur(Rang.Cinq);
+
+        List<Integer> hauteurs = collectRangValue(rangs);
+        Collections.sort(hauteurs);
+        for (int i = 0; i < hauteurs.size() - 4; i++) {
+            if (hauteurs.get(i + 4) - hauteurs.get(i) == 4) {
+                Resultat resultat = new Resultat();
+                resultat.setCombinaison(Combinaison.Suite);
+                getHauteurSuite(allRangs, hauteurs, i, resultat);
+                return resultat;
+            }
         }
+        return checkSuiteHauteur5(rangs);
+    }
+
+    private static List<Integer> collectRangValue(Set<Rang> rangs) {
         List<Integer> hauteurs = new ArrayList<>();
         for (Rang rang : rangs) {
             hauteurs.add(rang.getValue());
         }
-        Collections.sort(hauteurs);
-        for (int i = 0; i < hauteurs.size() - 4; i++) {
-            if (hauteurs.get(i + 4) - hauteurs.get(i) == 4) {
-                resultat.setUneCombinaisonValide(true);
-                resultat.setValueCombinaison(5);
-                for (Rang allRang : allRangs) {
-                    if (allRang.getValue() == hauteurs.get(i + 4)) {
-                        resultat.setHauteur(allRang);
-                    }
-                }
+        return hauteurs;
+    }
+
+    private static Resultat checkSuiteHauteur5(Set<Rang> rangs) {
+        Set<Rang> fromAsToCinq = Set.of(Rang.As, Rang.Deux, Rang.Trois, Rang.Quatre, Rang.Cinq);
+        if (rangs.containsAll(fromAsToCinq)) {
+            Resultat resultat = new Resultat();
+            resultat.setCombinaison(Combinaison.Suite);
+            List<Rang> hauteursetKickers = new ArrayList<>();
+            hauteursetKickers.add(Rang.Cinq);
+            resultat.setHauteurEtKickers(hauteursetKickers);// et l'on setup la hauteur de la suite
+            return resultat;
+        }
+        else return null;
+    }
+
+    private static void getHauteurSuite(Set<Rang> allRangs, List<Integer> hauteurs, int i, Resultat resultat) {
+        for (Rang allRang : allRangs) {
+            if (allRang.getValue() == hauteurs.get(i + 4)) {
+                List<Rang> hauteursetKickers = new ArrayList<>();
+                hauteursetKickers.add(allRang);
+                resultat.setHauteurEtKickers(hauteursetKickers);
             }
         }
-        return resultat;
     }
 
     // ************************************
@@ -223,11 +278,12 @@ public class CombinaisonUtil {
     // ************************************
 
     public static Resultat checkThreeOfAKind(Card[] cardsCommunesAndHandPlayer) {
-        Resultat resultat = new Resultat();
+
         Map<Rang, Integer> countByRang = countByRang(cardsCommunesAndHandPlayer); // on declare une variable Map qui va associer et stocker les variables rangs et les int
         ArrayList<Integer> counts = new ArrayList<>(countByRang.values()); // on declare une variable Arraylist pour stocker les int afin de pouvoir les classer
         Collections.sort(counts, Comparator.reverseOrder()); // on appelle une classe utilitaire Collections avec la methode de tri "sort"
         if (counts.get(0) == 3 && counts.get(1) < 2) {
+            Resultat resultat = new Resultat();
             Rang rangLePlusNombreux = null;
             int countMax = 0;
 
@@ -237,22 +293,23 @@ public class CombinaisonUtil {
                     rangLePlusNombreux = rang;
                 }
             }
-            resultat.setUneCombinaisonValide(true);
-            resultat.setValueCombinaison(4);
-            resultat.setHauteur(rangLePlusNombreux); // et l'on setup la hauteur du Brelan
-            countByRang.keySet().remove(rangLePlusNombreux); // on enleve ensuite le rang du Set de rang
+            resultat.setCombinaison(Combinaison.Brelan);
+
+            List<Rang> hauteursetKickers = new ArrayList<>();
+            hauteursetKickers.add(rangLePlusNombreux);
+            resultat.setHauteurEtKickers(hauteursetKickers);// et l'on setup la hauteur du Brelan
+            countByRang.keySet().remove(rangLePlusNombreux);// on enleve ensuite le rang du Set de rang
 
             Rang kicker1 = null;
             Rang kicker2 = null;
             int kickervalue = 0;
 
-            setKicker1(resultat, countByRang, kicker1, kickervalue);
-            setKicker2(resultat, countByRang, kicker2, kickervalue);
-
-        } else {
-            resultat.setUneCombinaisonValide(false);
+            kicker1 = getKicker1(resultat, countByRang, kicker1, kickervalue);
+            kicker2 = getKicker2(resultat, countByRang, kicker2, kickervalue);
+            resultat.setHauteurEtKickers(Arrays.asList(rangLePlusNombreux, kicker1, kicker2));
+            return resultat;
         }
-        return resultat;
+        return null;
     } // Fin de la methode Three of a kind (Brelan)
 
     // ************************************
@@ -260,17 +317,16 @@ public class CombinaisonUtil {
     // ************************************
 
     public static Resultat checkTwoPair(Card[] cardsCommunesAndHandPlayer) {
-        Resultat resultat = new Resultat();
+
         Map<Rang, Integer> countByRang = countByRang(cardsCommunesAndHandPlayer); // on declare une variable Map qui va associer et stocker les variables rangs et les int
         ArrayList<Integer> counts = new ArrayList<>(countByRang.values()); // on declare une variable Arraylist pour stocker les int afin de pouvoir les classer
         Collections.sort(counts, Comparator.reverseOrder()); // on appelle une classe utilitaire Collections avec la methode de tri "sort"
         if (counts.get(0) == 2 && counts.get(1) == 2) { // Si la conditionest respectee, on est sur d'avoir une double paire
-
+            Resultat resultat = new Resultat();
             Rang rangLePlusNombreux = null;
             int countMax = 0;
-
-            setHauteurRangPaire(resultat, countByRang, rangLePlusNombreux, countMax);
-            setHauteurRangPaire2(resultat, countByRang, rangLePlusNombreux, countMax);
+            Rang hauteurRangPaire = getHauteurRangPaire(countByRang, rangLePlusNombreux, countMax);
+            Rang hauteurRangPaire2 = getHauteurRangPaire2(resultat, countByRang, rangLePlusNombreux, countMax);
 
             Rang kicker1 = null;
             int kickervalue = 0;
@@ -282,14 +338,14 @@ public class CombinaisonUtil {
                     kickervalue = rang1.getValue();
                 }
             }
-            resultat.setKicker1(kicker1);
-        } else {
-            resultat.setUneCombinaisonValide(false);
+            resultat.setHauteurEtKickers(Arrays.asList(hauteurRangPaire, hauteurRangPaire2, kicker1));
+            resultat.setCombinaison(Combinaison.DoublePaire);
+            return resultat;
         }
-        return resultat;
+        return null;
     }
 
-    private static void setHauteurRangPaire(Resultat resultat, Map<Rang, Integer> countByRang, Rang rangLePlusNombreux, int countMax) {
+    private static Rang getHauteurRangPaire(Map<Rang, Integer> countByRang, Rang rangLePlusNombreux, int countMax) {
         int valueMaxPaire = 0;
 
         for (Rang rang : countByRang.keySet()) {    // On parcourt le set de rang existant
@@ -301,13 +357,11 @@ public class CombinaisonUtil {
                 }
             }
         }
-        resultat.setUneCombinaisonValide(true);
-        resultat.setValueCombinaison(3);
-        resultat.setHauteur(rangLePlusNombreux); // et l'on setup la hauteur de la 1ere paire
         countByRang.keySet().remove(rangLePlusNombreux); // on enleve ensuite le rang du Set de rang
+        return rangLePlusNombreux;
     }
 
-    private static void setHauteurRangPaire2(Resultat resultat, Map<Rang, Integer> countByRang, Rang rangLePlusNombreux, int countMax) {
+    private static Rang getHauteurRangPaire2(Resultat resultat, Map<Rang, Integer> countByRang, Rang rangLePlusNombreux, int countMax) {
         int valueMaxPaire = 0;
         countMax = 0;
         for (Rang rang : countByRang.keySet()) {    // On parcourt le set de rang existant
@@ -320,8 +374,8 @@ public class CombinaisonUtil {
                 }
             }
         }
-        resultat.setHauteur2(rangLePlusNombreux); // et l'on setup la hauteur de la 2eme paire
         countByRang.keySet().remove(rangLePlusNombreux); // on enleve ensuite le rang
+        return rangLePlusNombreux;
     }
 
     // ************************************
@@ -329,11 +383,12 @@ public class CombinaisonUtil {
     // ************************************
 
     public static Resultat checkOnePair(Card[] cardsCommunesAndHandPlayer) {
-        Resultat resultat = new Resultat();
+
         Map<Rang, Integer> countByRang = countByRang(cardsCommunesAndHandPlayer); // on declare une variable Map qui va associer et stocker les variables rangs et les int
         ArrayList<Integer> counts = new ArrayList<>(countByRang.values()); // on declare une variable Arraylist pour stocker les int afin de pouvoir les classer
         Collections.sort(counts, Comparator.reverseOrder()); // on appelle une classe utilitaire Collections avec la methode de tri "sort"
         if (counts.get(0) == 2 && counts.get(1) < 2) {
+            Resultat resultat = new Resultat();
             Rang rangLePlusNombreux = null;
             int countMax = 0;
             int valueMaxPaire = 0;
@@ -347,9 +402,7 @@ public class CombinaisonUtil {
                     }
                 }
             }
-            resultat.setUneCombinaisonValide(true);
-            resultat.setValueCombinaison(2);
-            resultat.setHauteur(rangLePlusNombreux); // et l'on setup la hauteur de la paire
+            resultat.setCombinaison(Combinaison.Paire);
             countByRang.keySet().remove(rangLePlusNombreux); // on enleve ensuite le rang du Set de rang
 
             Rang kicker1 = null;
@@ -357,64 +410,25 @@ public class CombinaisonUtil {
             Rang kicker3 = null;
             int kickervalue = 0;
 
-            setKicker1(resultat, countByRang, kicker1, kickervalue);
-            setKicker2(resultat, countByRang, kicker2, kickervalue);
-            setKicker3(resultat, countByRang, kicker3, kickervalue);
-
-        } else {
-            resultat.setUneCombinaisonValide(false);
+            kicker1 = getKicker1(resultat, countByRang, kicker1, kickervalue);
+            kicker2 = getKicker2(resultat, countByRang, kicker2, kickervalue);
+            kicker3 = getKicker3(resultat, countByRang, kicker3, kickervalue);
+            resultat.setHauteurEtKickers(Arrays.asList(rangLePlusNombreux, kicker1, kicker2, kicker3));
+            return resultat;
         }
-        return resultat;
+        return null;
     }
-
-    private static void setKicker1(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker1, int kickervalue) {
-        for (Rang rang1 : countByRang.keySet()) {
-            if (rang1.getValue() > kickervalue) {
-                kicker1 = rang1;
-                kicker1.setValue(rang1.getValue());
-                kickervalue = rang1.getValue();
-            }
-        }
-        resultat.setKicker1(kicker1);
-        countByRang.keySet().remove(kicker1);
-    }
-
-    private static void setKicker2(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker2, int kickervalue) {
-        for (Rang rang1 : countByRang.keySet()) {
-            if (rang1.getValue() > kickervalue) {
-                kicker2 = rang1;
-                kicker2.setValue(rang1.getValue());
-                kickervalue = rang1.getValue();
-            }
-        }
-        resultat.setKicker2(kicker2);
-        countByRang.keySet().remove(kicker2);
-    }
-
-    private static void setKicker3(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker3, int kickervalue) {
-        for (Rang rang1 : countByRang.keySet()) {
-            if (rang1.getValue() > kickervalue) {
-                kicker3 = rang1;
-                kicker3.setValue(rang1.getValue());
-                kickervalue = rang1.getValue();
-            }
-        }
-        resultat.setKicker3(kicker3);
-        countByRang.keySet().remove(kicker3);
-    }
-
 
     // ************************************
 // 9 - HIGH CARD (CARTE HAUTE)
 // ************************************
     public static Resultat checkHighCard(Card[] cardsCommunesAndHandPlayer) {
-        Resultat resultat = new Resultat();
         Map<Rang, Integer> countByRang = countByRang(cardsCommunesAndHandPlayer);
         ArrayList<Integer> counts = new ArrayList<>(countByRang.values()); // on declare une variable Arraylist pour stocker les int afin de pouvoir les classer
         Collections.sort(counts, Comparator.reverseOrder()); // on appelle une classe utilitaire Collections avec la methode de tri "sort"
-        if (counts.get(0) < 2 && CombinaisonUtil.checkFlush(cardsCommunesAndHandPlayer).isUneCombinaisonValide() == false && CombinaisonUtil.checkStraight(cardsCommunesAndHandPlayer).isUneCombinaisonValide() == false) {
-            resultat.setUneCombinaisonValide(true);
-            resultat.setValueCombinaison(1);
+        if (counts.get(0) < 2 && CombinaisonUtil.checkFlush(cardsCommunesAndHandPlayer) == null && CombinaisonUtil.checkStraight(cardsCommunesAndHandPlayer) == null) {
+            Resultat resultat = new Resultat();
+            resultat.setCombinaison(Combinaison.CarteHaute);
 
             Rang kicker1 = null;
             Rang kicker2 = null;
@@ -424,17 +438,55 @@ public class CombinaisonUtil {
 
             int kickervalue = 0;
 
-            setKicker1(resultat, countByRang, kicker1, kickervalue);
-            setKicker2(resultat, countByRang, kicker2, kickervalue);
-            setKicker3(resultat, countByRang, kicker3, kickervalue);
-            setKicker4(resultat, countByRang, kicker4, kickervalue);
-            setKicker5(resultat, countByRang, kicker5, kickervalue);
+            getKicker1(resultat, countByRang, kicker1, kickervalue);
+            getKicker2(resultat, countByRang, kicker2, kickervalue);
+            getKicker3(resultat, countByRang, kicker3, kickervalue);
+            getKicker4(resultat, countByRang, kicker4, kickervalue);
+            getKicker5(resultat, countByRang, kicker5, kickervalue);
+            resultat.setHauteurEtKickers(Arrays.asList(kicker1, kicker2, kicker3, kicker4, kicker5));
 
+            return resultat;
         }
-        return resultat;
+        return null;
     }
 
-    private static void setKicker4(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker4, int kickervalue) {
+    private static Rang getKicker1(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker1, int kickervalue) {
+        for (Rang rang1 : countByRang.keySet()) {
+            if (rang1.getValue() > kickervalue) {
+                kicker1 = rang1;
+                kicker1.setValue(rang1.getValue());
+                kickervalue = rang1.getValue();
+            }
+        }
+        countByRang.keySet().remove(kicker1);
+        return kicker1;
+    }
+
+    private static Rang getKicker2(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker2, int kickervalue) {
+        for (Rang rang1 : countByRang.keySet()) {
+            if (rang1.getValue() > kickervalue) {
+                kicker2 = rang1;
+                kicker2.setValue(rang1.getValue());
+                kickervalue = rang1.getValue();
+            }
+        }
+        countByRang.keySet().remove(kicker2);
+        return kicker2;
+    }
+
+    private static Rang getKicker3(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker3, int kickervalue) {
+        for (Rang rang1 : countByRang.keySet()) {
+            if (rang1.getValue() > kickervalue) {
+                kicker3 = rang1;
+                kicker3.setValue(rang1.getValue());
+                kickervalue = rang1.getValue();
+            }
+        }
+        countByRang.keySet().remove(kicker3);
+        return kicker3;
+    }
+
+    private static Rang getKicker4(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker4, int kickervalue) {
         for (Rang rang1 : countByRang.keySet()) {
             if (rang1.getValue() > kickervalue) {
                 kicker4 = rang1;
@@ -442,11 +494,11 @@ public class CombinaisonUtil {
                 kickervalue = rang1.getValue();
             }
         }
-        resultat.setKicker4(kicker4);
         countByRang.keySet().remove(kicker4);
+        return kicker4;
     }
 
-    private static void setKicker5(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker5, int kickervalue) {
+    private static Rang getKicker5(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker5, int kickervalue) {
         for (Rang rang1 : countByRang.keySet()) {
             if (rang1.getValue() > kickervalue) {
                 kicker5 = rang1;
@@ -454,14 +506,23 @@ public class CombinaisonUtil {
                 kickervalue = rang1.getValue();
             }
         }
-        resultat.setKicker5(kicker5);
         countByRang.keySet().remove(kicker5);
+        return kicker5;
     }
 
     // Formule pour retourner le resultat de la combinaison true du joueur
     public static Resultat getCombinaison(Joueur joueur) {
-        Resultat resultat = new Resultat();
+        List<Combinaison> listCombinaison = initListCombi(); // declaration tableau list combi qui rassemble les checks de chaque combinaison
+        for (Combinaison combinaison : listCombinaison) {
+            Resultat resultat = combinaison.check(joueur.getCardsCommunesAndHandPlayer());
+            if (resultat != null) { // on appelle la methode check de l'objet combinaison pour verifier s'il renvoie une valeur =! de 0
+                return resultat;
+            }
+        }
+        return null;
+    }
 
+    private static List<Combinaison> initListCombi() {
         List<Combinaison> listCombinaison = new ArrayList<Combinaison>();
         listCombinaison.add(Combinaison.CarteHaute);
         listCombinaison.add(Combinaison.Paire);
@@ -469,21 +530,77 @@ public class CombinaisonUtil {
         listCombinaison.add(Combinaison.Brelan);
         listCombinaison.add(Combinaison.Suite);
         listCombinaison.add(Combinaison.Couleur);
+        listCombinaison.add(Combinaison.Full);
         listCombinaison.add(Combinaison.Carre);
         listCombinaison.add(Combinaison.QuinteFlush);
+        return listCombinaison;
+    }
 
-        for (Combinaison combinaison : listCombinaison) {
-            if (combinaison.check(joueur.getCardsCommunesAndHandPlayer()).getValueCombinaison()!=0) {
-                System.out.println(" Joueur possede une : " + combinaison.toString() );
+    /**
+     * @param rangs1
+     * @param rangs2
+     * @return 1 si rangs1 > rangs2, -1 si rangs2 > rangs1, 0 si egalite
+     */
+    public static int compare(List<Rang> rangs1, List<Rang> rangs2) {
+        if (rangs2 == null || rangs2.isEmpty()) {
+            return 1;
+        }
+        for (int i = 0; i < rangs1.size(); i++) {
+            if (rangs1.get(i).value > rangs2.get(i).value) {
+                return 1;
+            } else if (rangs1.get(i).value < rangs2.get(i).value) {
+                return -1;
             }
         }
-        return resultat;
+        return 0;
+    }
+
+    public static List<Joueur> departagerJoueurs(List<Joueur> joueurs) {
+        List<Joueur> result = new ArrayList<>();
+        List<Rang> rangsEtHauteursMax = new ArrayList<>();
+        for (Joueur joueur : joueurs) { // On boucle sur les joueursWithHighestCombinaisonValue restant en lice
+            Resultat combinaison = CombinaisonUtil.getCombinaison(joueur); // On affecte la combi du joueur dans une variable
+            int compareResult = CombinaisonUtil.compare(combinaison.getHauteurEtKickers(), rangsEtHauteursMax); // declaration d'un int pour comparer
+            switch (compareResult) {
+                case 1:
+                    rangsEtHauteursMax = combinaison.getHauteurEtKickers();
+                    result.clear();
+                    result.add(joueur);
+                    break;
+                case 0:
+                    result.add(joueur);
+                    break;
+            }
+        }
+        return result;
     }
 }
-//
-//        public static Resultat getHighestResultat (List < Resultat > resultats) {
-//            Resultat resultat = new Resultat();
-//            return resultat;
-//        }
 
+//    public static Map<Joueur, Integer> getHighestResultat(LinkedList<Joueur> joueurs) {
+//        Resultat resultat = new Resultat();
+//
+//        // On cree un Map pour stocker Joueur et sa valeur combi
+//        Map<Joueur, Integer> valueCombiPlayers = new HashMap<Joueur, Integer>();
+//
+//        for (int i = 0; i < joueurs.size(); i++) {
+//            valueCombiPlayers.put(joueurs.get(i), CombinaisonUtil.getCombinaison(joueurs.get(i)).valueCombinaison);
+//        } // le tableau Map Joueur/ValeurCombi est rempli
+//
+//        // Il faut le trier :
+//        System.out.println("Map non triee :" + valueCombiPlayers);
+//
+//        return valueCombiPlayers;
+//
+////        Comparator<Integer> keyComparator = new Comparator<Integer>() {
+////            @Override
+////            public int compare(Integer integer, Integer t1) {
+////                return integer.compareTo(t1);
+////            }
+////        };
+////        Map<Joueur, Integer> sortedOnKeyMap = new TreeMap(keyComparator);
+////        sortedOnKeyMap.putAll(valueCombiPlayers);
+//
+////        for (int i = 0; i < joueurs.size(); i++) {
+////            CombinaisonUtil.getCombinaison(joueurs.get(i)).getValueCombinaison();
+////        }
 
