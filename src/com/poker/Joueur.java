@@ -3,10 +3,14 @@ package com.poker;
 public class Joueur {
 
     String namePlayer;
-    int chipsPlayer = 10000;                // CREATION d'une liste de Jetons par joueur, indice 0-joueur0 etc.
+    int chipsPlayer = 10000;                // Stack de Jetons par joueur, indice 0-joueur0 etc.
     Card[] main = new Card[2];
     Card[] cardsCommunesAndHandPlayer = new Card[7];
     int betPlayer = 0;
+    int smallBlind = 0;
+    int bigBlind = 0;
+    boolean isSmallBlind = false;
+    boolean isBigBlind = false;
 
     //Constructeur avec paramètres
     public Joueur(String namePlayer, Card[] main) {
@@ -17,7 +21,9 @@ public class Joueur {
         this.namePlayer = namePlayer;
     }
 
-    //***** Getter - Accesseurs ******
+    //**********************************
+    //*       GETTER - ACCESSEURS      *
+    //**********************************
 
     public String getNamePlayer() {
         return namePlayer;
@@ -35,7 +41,29 @@ public class Joueur {
         return betPlayer;
     }
 
-    //******* Setter - Mutateurs *******
+    public int getSmallBlind() {
+        return smallBlind;
+    }
+
+    public int getBigBlind() {
+        return bigBlind;
+    }
+
+    public Card[] getCardsCommunesAndHandPlayer() {
+        return cardsCommunesAndHandPlayer;
+    }
+
+    public boolean isBigBlind() {
+        return isBigBlind;
+    }
+
+    public boolean isSmallBlind() {
+        return isSmallBlind;
+    }
+
+    //**********************************
+    //*       SETTER - MUTATEURS       *
+    //**********************************
 
     public void setNamePlayer(String namePlayer) {
         this.namePlayer = namePlayer;
@@ -55,25 +83,35 @@ public class Joueur {
         this.betPlayer = betPlayer;
     }
 
-    @Override
-    public String toString() {
-        return namePlayer + " Jetons: " + chipsPlayer + " \n";
+    public void setSmallBlind(int smallBlind) {
+        this.smallBlind = smallBlind;
     }
 
+    public void setSmallBlind(boolean smallBlind) {
+        isSmallBlind = smallBlind;
+    }
 
-    // LES COMBINAISONS AU POKER
+    public void setBigBlind(int bigBlind) {
+        this.bigBlind = bigBlind;
+    }
 
-
-
-
-    public Card[] getCardsCommunesAndHandPlayer() {
-        return cardsCommunesAndHandPlayer;
+    public void setBigBlind(boolean bigBlind) {
+        isBigBlind = bigBlind;
     }
 
     public void setCardsCommunesAndHandPlayer(Card[] cardsCommunesAndHandPlayer) {
         this.cardsCommunesAndHandPlayer = cardsCommunesAndHandPlayer;
     }
 
-}// Fin de la classe Joueur
+
+
+
+
+    @Override
+    public String toString() {
+        return namePlayer + " Jetons: " + chipsPlayer + " \n";
+    }
+
+}// FIN DE LA CLASSE JOUEUR
 
 
