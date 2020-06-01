@@ -421,6 +421,8 @@ class CombinaisonUtilTest {
         Joueur joueur1 = new Joueur("joueur1");
         Joueur joueur2 = new Joueur("joueur2");
         Joueur joueur3 = new Joueur("joueur3");
+        Joueur joueur4 = new Joueur("joueur4");
+        Joueur joueur5 = new Joueur("joueur5");
 
         Card[] mainJoueur1 = new Card[]{
                 new Card(As, Trefle),
@@ -452,9 +454,31 @@ class CombinaisonUtilTest {
                 new Card(Six, Pique),
         };
 
+        Card[] mainJoueur4 = new Card[]{
+                new Card(Deux, Trefle),
+                new Card(Cinq, Trefle),
+                new Card(Trois, Carreau),
+                new Card(Roi, Coeur),
+                new Card(Huit, Pique),
+                new Card(Sept, Trefle),
+                new Card(Dix, Pique),
+        };
+
+        Card[] mainJoueur5 = new Card[]{
+                new Card(Six, Trefle),
+                new Card(Deux, Trefle),
+                new Card(Trois, Carreau),
+                new Card(Roi, Coeur),
+                new Card(Huit, Pique),
+                new Card(Sept, Trefle),
+                new Card(Dix, Pique),
+        };
+
         joueur1.setCardsCommunesAndHandPlayer(mainJoueur1);
         joueur2.setCardsCommunesAndHandPlayer(mainJoueur2);
         joueur3.setCardsCommunesAndHandPlayer(mainJoueur3);
+        joueur4.setCardsCommunesAndHandPlayer(mainJoueur4);
+        joueur5.setCardsCommunesAndHandPlayer(mainJoueur5);
 
         List<Joueur> listJoueurMaxCombi = new ArrayList<>();
         listJoueurMaxCombi.add(joueur1);
@@ -465,7 +489,18 @@ class CombinaisonUtilTest {
         assertEquals(2, joueursGagnants.size());
         assertEquals("joueur1", joueursGagnants.get(0).getNamePlayer());
         assertEquals("joueur3", joueursGagnants.get(1).getNamePlayer());
+
+
+        List<Joueur> listJoueurMaxCombi2 = new ArrayList<>();
+        listJoueurMaxCombi2.add(joueur4);
+        listJoueurMaxCombi2.add(joueur5);
+
+        List<Joueur> joueursGagnants2 = CombinaisonUtil.departagerJoueurs(listJoueurMaxCombi2);
+        assertEquals(1, joueursGagnants2.size());
+        assertEquals("joueur5", joueursGagnants2.get(0).getNamePlayer());
+
     }
+
 
     @Test
     void getCombinaison() {

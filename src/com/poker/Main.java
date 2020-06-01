@@ -5,13 +5,20 @@ import java.util.LinkedList;
 
 public class Main {
 
-    private static int potTotal = 0;
+    private static int totalPot = 0;
 
     public static void main(String[] args) throws InterruptedException {
 
         int tourDeParole = 0;
 
-        // INITIALISATION DES JOUEURS :
+        // ************************************
+        // PARAMETRAGE DU JEU :
+        // - Initialisation des Joueurs
+        // - Affectation des "Noms de Joueurs" dans le tableau de "N" joueursDansLeCoup initialise precedemment
+        // - Attribution des mains Joueurs du paquet melange
+        // ************************************
+
+        // Initialisation :
         Scanner sc = new Scanner(System.in);
         int nombreDeJoueurs = 0;
 
@@ -19,7 +26,7 @@ public class Main {
             try {
                 System.out.println("♠️♥️POKER♦️♣️ - TEXAS HOLDEM");
                 System.out.println("By Patxi & Bixente [Covid-19 Corporation]");
-                System.out.print("Saisissez un nombre de joueurs (2 Min./10 Max.) :");
+                System.out.print("Saisissez un nombre de joueursDansLeCoup (2 Min./10 Max.) :");
                 nombreDeJoueurs = sc.nextInt();
             } catch (InputMismatchException e) {
                 System.out.println("La saisie est incorrecte");
@@ -27,17 +34,9 @@ public class Main {
             sc.nextLine();
         } while (nombreDeJoueurs < 2 || nombreDeJoueurs > 10);
 
-        Joueur[] listJoueur = new Joueur[nombreDeJoueurs];
+        Joueur[] joueursInscrits = new Joueur[nombreDeJoueurs];
 
-        // ************************************
-        // INITIALISATION DE LA PARTIE :
-        // - Creation d'un paquet
-        // - Affectation des "Noms de Joueurs" dans le tableau de "N" joueurs initialise precedemment
-        // - Attribution des mains Joueurs du paquet melange
-        // ************************************
-
-        System.out.println("Préparation de " + nombreDeJoueurs + " joueurs à la table ... ");
-        Paquet paquet = new Paquet();
+        System.out.println("Préparation de " + nombreDeJoueurs + " joueursDansLeCoup à la table ... ");
         for (int i = 0; i < (nombreDeJoueurs); i++) {
             String username;
             boolean matches;
@@ -49,200 +48,276 @@ public class Main {
                     System.out.println("Non valide, veuillez reessayer :");
                 }
             } while (!matches);
-            listJoueur[i] = new Joueur(username);               // Voir NOTION D'EXPRESSIONS REGULIERES
-            System.out.print("Joueur : " + listJoueur[i]);
-
-            // CARDS DEALT : Affecte 2 cartes au joueur listJoueur[i] :
-            distributionMainJoueur(listJoueur[i], paquet);
+            joueursInscrits[i] = new Joueur(username);               // Voir NOTION D'EXPRESSIONS REGULIERES
+            System.out.print("Joueur : " + joueursInscrits[i]);
         }
 
         // ************************************
-        // TIRAGE AU SORT du DEALER :
-        // - Declaration d'un objet Random puis d'un entier "dealer"
-        // - On appelle la methode nextInt de la classe "Random" de Java qui selectionne de maniere aleatoire un entier
-        // entre 0 et l'entier place en parametres
-        // - Instanciation d'un objet LinkedList qui servira de "File de Joueur" pour la distribution de la parole
-        // ************************************
-
-        Random startDealer = new Random();
-        int dealer = startDealer.nextInt(nombreDeJoueurs);
-        LinkedList<Joueur> joueurs = new LinkedList<>();
-
-        // ************************************
         // INITIALISATION DE LA LISTE JOUEUR :
-        // - Remplissage de l'objet LinkedList "joueurs" via la methode "initialisationListeJoueur" :
-        // - Cette methode :
-        // ► Efface la liste precedente dans le cas ou celle ci ne serait pas vierge
-        // ► Affecte individuellement chacun des joueurs du tableau SSI ils leur restent des jetons
+        // - Instanciation d'un objet LinkedList "joueursDansLeCoup" qui servira de "File de Joueur" pour la
+        //   distribution de la parole
+        // - Verification du nombre de joueurs restants en jeu pour savoir si le tournoi continue au debut de chaque
+        //   tour de main. Si checkNbJoueurRestant vaut 1, le tournoi s'arrete.
+        // - Remplissage de l'objet LinkedList "joueursDansLeCoup" via la methode "initialisationListeJoueur" :
+        //
+        //      ► Efface la liste precedente dans le cas ou celle ci ne serait pas vierge
+        //      ► Affecte individuellement chacun des joueursDansLeCoup du tableau SSI il leur reste des jetons
+        //
+        // TIRAGE AU SORT DU BOUTON POUR LE DEALER :
+        // ► Lors de la Main N.1 :      - Declaration d'un objet Random puis d'un entier "dealer"
+        //                              - On appelle la methode nextInt de la classe "Random" de Java qui selectionne
+        //                                de maniere aleatoire un entier entre 0 et l'entier place en parametres
+        //
+        // ► Pour les mains suivantes : - On passe au joueur d'apres de la file <Joueurs>
+        //
+        // ► DISTRIBUTION CARTES :
+        // - Reinitialisation du Paquet de Cartes
+        // - Attribution des mains Joueurs du paquet melange
         // ************************************
 
-        int numMain=0;
-        do {
+        LinkedList<Joueur> joueursDansLeCoup = new LinkedList<>(); // Variable pour check combinaison
 
-            initialisationListeJoueur(listJoueur, joueurs);
+        int numMain = 0;
+        int dealer = 0;
+        do {
+            checkNbJoueurRestant(joueursInscrits);
+            initialisationListeJoueur(joueursInscrits, joueursDansLeCoup);
+            resetCardsCommunesAndHandPlayer(joueursDansLeCoup);
+
             numMain++; // Incrementation de la main suivante
-            System.out.println("Affichage de la liste des joueurs sur la Main N." + numMain + ":" + joueurs);
-            System.out.println("Tirage Dealer : " + listJoueur[dealer].getNamePlayer() + " a la distribution");
+            System.out.println("Affichage de la liste des joueursDansLeCoup sur la Main N." + numMain + ":\n" + joueursDansLeCoup);
+
+            if (numMain == 1) {
+                Random startDealer = new Random();
+                dealer = startDealer.nextInt(nombreDeJoueurs);
+            } else {
+                if (dealer + 1 < joueursDansLeCoup.size()) {
+                    dealer++;
+                } else {
+                    dealer = 0;
+                }
+            }
+
+            System.out.println("Tirage Dealer : " + joueursDansLeCoup.get(dealer).getNamePlayer() + " a la distribution");
 
             // ************************************
-            // On place les i joueurs de debut de tableau se trouvant avant la position du dealer + dealer compris en fin de "pile joueur"
+            // On place les i joueursDansLeCoup de debut de tableau se trouvant avant la position du dealer
+            // + dealer compris en fin de "pile joueur"
             // ************************************
 
             int rankToBeCancelled = 0; //
             for (int i = 0; i <= dealer; i++) {
-                joueurs.add(nombreDeJoueurs + i, listJoueur[i]);
+                joueursDansLeCoup.add(checkNbJoueurRestant(joueursInscrits) + i, joueursInscrits[i]);
                 rankToBeCancelled++;
             }
 
             for (int i = 0; i < rankToBeCancelled; i++) {
-                joueurs.removeFirst(); // suppression des n joueurs avant le dealer de la tete de la pile
+                joueursDansLeCoup.removeFirst();
+                // suppression des n joueursDansLeCoup avant et comprenant le dealer de la tete de la pile
             }
 
             // ************************************
             // Mise en queue de pile le SB :
             // ************************************
 
-//        joueurs.getFirst().setBetPlayer(20); // on set la mise du joueur SB situe en tete de pile (SURTOUT PAS !!)
-            int chipsPlayerBefore = joueurs.getFirst().getChipsPlayer();
-            joueurs.getFirst().setSmallBlind(20);
-            joueurs.getFirst().setSmallBlind(true);
-            int sB = joueurs.getFirst().getSmallBlind();
+            int chipsPlayerBefore = joueursDansLeCoup.getFirst().getChipsPlayer();
+            int montantSmallBlind = 20; // On modifiera par la suite cette valeur avec un tableau de palier
 
-            joueurs.getFirst().setChipsPlayer(chipsPlayerBefore - sB); // MAJ du stack joueur en position SB
-            potTotal = potTotal + sB;
-            System.out.println(" Small Blind : " + joueurs.getFirst() + " Met " + sB + " jetons");
+            // Si le joueur n'a pas assez de jetons pour payer la blind, alors la valeur de sa blind sera egale au
+            // reste de son stack
+
+            if (chipsPlayerBefore < montantSmallBlind) {
+                joueursDansLeCoup.getFirst().setSmallBlind(chipsPlayerBefore);
+            } else {
+                joueursDansLeCoup.getFirst().setSmallBlind(montantSmallBlind);
+            }
+
+            joueursDansLeCoup.getFirst().setSmallBlind(true);
+            int miseSmallBlindJoueur = joueursDansLeCoup.getFirst().getSmallBlind();
+
+            // MAJ du stack joueur en position SB :
+            joueursDansLeCoup.getFirst().setChipsPlayer(chipsPlayerBefore - miseSmallBlindJoueur);
+            totalPot = totalPot + miseSmallBlindJoueur;
+
+            System.out.println(" Small Blind : " + joueursDansLeCoup.getFirst() + " Met " + miseSmallBlindJoueur + " jetons");
             System.out.println("-----------------------------");
-            joueurs.addLast(joueurs.getFirst()); // on place le joueur SB actuellement en tete de pile > en queue de pile
-            joueurs.removeFirst();
+
+            // on place le joueur SB actuellement en tete de pile > en queue de pile :
+            joueursDansLeCoup.addLast(joueursDansLeCoup.getFirst());
+            joueursDansLeCoup.removeFirst();
 
             // ************************************
             // Mise en queue de pile le BB :
             // ************************************
-            chipsPlayerBefore = joueurs.getFirst().getChipsPlayer();
-            joueurs.getFirst().setBigBlind(40);
-            joueurs.getFirst().setBigBlind(true);
-            int bB = joueurs.getFirst().getBigBlind();
 
-            joueurs.getFirst().setChipsPlayer(chipsPlayerBefore - bB); // MAJ du stack joueur en position BB
-            potTotal = potTotal + bB;
+            chipsPlayerBefore = joueursDansLeCoup.getFirst().getChipsPlayer();
+            int montantBigBlind = 40;
 
-            System.out.println(" Big Blind : " + joueurs.getFirst() + " Met " + bB + " jetons");
+            // Si le joueur n'a pas assez de jetons pour payer la blind, alors la valeur de sa blind sera egale au
+            // reste de son stack
+
+            if (chipsPlayerBefore < montantBigBlind) {
+                joueursDansLeCoup.getFirst().setBigBlind(chipsPlayerBefore);
+            } else {
+                joueursDansLeCoup.getFirst().setBigBlind(montantBigBlind);
+            }
+            joueursDansLeCoup.getFirst().setBigBlind(true);
+            int miseBigBlindJoueur = joueursDansLeCoup.getFirst().getBigBlind();
+
+            // MAJ du stack joueur en position BB :
+
+            joueursDansLeCoup.getFirst().setChipsPlayer(chipsPlayerBefore - miseBigBlindJoueur);
+            totalPot = totalPot + miseBigBlindJoueur;
+
+            System.out.println(" Big Blind : " + joueursDansLeCoup.getFirst() + " Met " + miseBigBlindJoueur + " jetons");
             System.out.println("-----------------------------");
-            joueurs.addLast(joueurs.getFirst()); // on place le joueur BB actuellement en tete de file > en queue de file
-            joueurs.removeFirst();
 
-            System.out.println("Valeur du Pot Total : " + potTotal);
+            // on place le joueur BB actuellement en tete de file > en queue de file :
+
+            joueursDansLeCoup.addLast(joueursDansLeCoup.getFirst());
+            joueursDansLeCoup.removeFirst();
+
+            System.out.println("Valeur du Pot Total : " + totalPot);
+
+            Paquet paquet = new Paquet();
+
+            // CARDS DEALT : Affectation de 2 cartes au joueur joueursDansLeCoup[i] :
+            for (Joueur joueur : joueursDansLeCoup) {
+                distributionMainJoueur(joueur, paquet);
+            }
+
+            // Cette variable est necessaire dans le cas ou un joueur mise puis fold en cours d'enchere pour garder sa
+            // mise dans la construction du pot :
+            Joueur[] joueursALaTable = new Joueur[joueursDansLeCoup.size()];
+
+            // Om remplit notre tableau de joueur a la table :
+            for (int i = 0; i < joueursDansLeCoup.size(); i++) {
+                joueursALaTable[i] = joueursDansLeCoup.get(i);
+            }
 
             // ************************************
             //             PRE-FLOP
+            // - Demarrage du tour d'enchere
+            // - A l'issue de ce tour d'enchere, on verifie :
+            //      * s'il ne reste qu'un seul joueur dans le coup auquel cas, il remporte le pot total
+            //      * qu'un ou plusieurs joueurs ne sont pas partis a tapis (allin)
+            //
+            //   Verification de l'activation d'un pot secondaire ?
+            //   Regle : Si l'un des joueurs se retrouve all in ET qu'au moins 2 autres joueurs restent en jeu
+            //   Alors toutes les mises supplementaires, une fois le montant du all in paye, sont regroupees dans
+            //   un pot secondaire que seuls ces joueurs peuvent gagner.
+            //
+            //   Si oui, il faut payer le montant du all in de la plus petite mise de la list "joueurAllIn" :
+            //      > Creation d'une liste "joueurAllIn"
+            //      > Si "joueurAllIn" > 1 :
+            //   On classe par ordre croissant le montant du tapis de chaque joueur afin de definir N-1 pots
+            //
+            //
             // ************************************
 
             System.out.println(" [ PRE-FLOP ] ");
+
             tourDeParole = 1;
-            tourDenchere(tourDeParole, joueurs, sB, bB);
+            tourDenchere(tourDeParole, joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable);
 
-            if (joueurs.size() == 1) {
+            // PARTAGE DU POT
+            // Verification du cas N.1 : Tous les joueurs se sont couches.
+            // Le pot est remporte integralement par le dernier joueur restant en jeu gagne le pot :
 
-                // Retourner le joueur gagnant :
+            if (joueursDansLeCoup.size() == 1) {
+                // Retour et MAJ du joueur gagnant :
+                int gainJetonsJoueur = totalPot;
+                int ancienSolde = joueursDansLeCoup.getFirst().getChipsPlayer();
+                System.out.println(joueursDansLeCoup.getFirst().getNamePlayer() + " gagne le pot (" + gainJetonsJoueur + ")");
+                joueursDansLeCoup.getFirst().setChipsPlayer(ancienSolde + gainJetonsJoueur);
                 continue;
             }
+            // y a t'il un pot secondaire ?
+            if (nbDeJoueurAllIn(joueursDansLeCoup) != 0 && joueursDansLeCoup.size() >= 3) {
+                LinkedList<Joueur> joueurAllIn = checkAllInPreFlop(joueursDansLeCoup);
+                if (joueurAllIn.size() > 1) {
+                    ordonnerStackJoueurAllIn(joueurAllIn);
+                    setBetTourPlayer(joueursInscrits);
+
+                    int[] listeDePots = new int[joueurAllIn.size()];
+
+                    // Il y aura N Pots de N joueurs all in
+                    for (int i = 0; i < joueurAllIn.size(); i++) {
+
+                        // 2eme boucle imbriquee pour savoir combien de joueurs ont paye le montant du tapis du joueur en cas
+                        // de gain de celui ci :
+
+                        int nbJoueursSuiventAllIn = checkPlayersFollowAllIn(joueursInscrits, joueurAllIn, i);
+
+                        // on attribue a l'index correspondant la mise du joueur * le nombre de Joueurs ayant couvert cette
+                        // mise. Ce sera le pot que le joueur pourra pretendre gagner :
+
+                        calculDePot(joueurAllIn, listeDePots, i, nbJoueursSuiventAllIn);
+                        updateBetPlayerAfterPaymentAllin(joueursInscrits, joueurAllIn, i);
+                    }
+                }
+            }
+            //retourneValueDuPlusPetitStackAllIn(joueurAllIn); // retourne le joueur qui a le plus petit tapis all in
+
+            // Calcul du pot principal:
+            // Valeur du plus petit Stack All In x nombre de joueurs ayant au moins paye le montant du plus petit
+            // stack All In a l'issue du PRE FLOP. Attention : Le joueur peut ne plus etre "DansLeCoup" mais avoir
+            // mise avant de se coucher
+
+
+            // On parcourt la liste des joueurs present encore dans le coup a l'issue du tour d'enchere et l'on
+            // commence donc par le plus petit stack, on créé le pot principal. Exemple : Joueur A possède 10€ et égalise
+            // 10€ pour chacun des autres joueurs. Un pot principal de 30€ est donc créé. Cela correspond à l'argent
+            // auquel le Joueur A peut prétendre s'il gagne la main. Ni plus, ni moins.
+
+//                int potPrincipal = 0;
+//                for (Joueur joueur : joueursDansLeCoup) {
+//                    potPrincipal = potPrincipal + valeurDuStackAllInMinimum;
+//                    joueur.setBetPlayer(joueur.getBetPlayer() - valeurDuStackAllInMinimum);
+//                }
+
+
+            // 
+
             // ************************************
             //              FLOP
+            // - Tirage des 3 cartes du Flop que l'on renvoie dans un tableau de cartes "cartesCommunes"
+            // - Verification que SB et BB soient toujours en jeu via la methode "checkSmallAndBig"
+            //      ► Ajustement du nombre de rangs a repasser en tete de file
+            // - Affectation des 3 cartes du Board dans les mains de chaque joueur via une boucle for
             // ************************************
 
             Card[] cartesCommunes = tirageFlop(paquet);
+            checkSmallAndBig(joueursDansLeCoup);
 
-            // On verifie que la SB et la BB sont toujours en jeu, sinon on ajuste le nombre de rang a repasser en tete de file
-            // en consequence
-
-            checkSmallAndBig(joueurs);
-
-            // ************************************
-            // *** COMBINAISONS PAR JOUEUR RESTANT EN JEU SUR LA MAIN
-            // ************************************
-
-            for (int j = 0; j < joueurs.size(); j++) {
-                joueurs.get(j).getCardsCommunesAndHandPlayer()[2] = cartesCommunes[0];
-                joueurs.get(j).getCardsCommunesAndHandPlayer()[3] = cartesCommunes[1];
-                joueurs.get(j).getCardsCommunesAndHandPlayer()[4] = cartesCommunes[2];
-                System.out.println("Combinaison du joueur " + joueurs.get(j).getNamePlayer() + " : " + joueurs.get(j).getCardsCommunesAndHandPlayer()[0] + joueurs.get(j).getCardsCommunesAndHandPlayer()[1] + " + " + joueurs.get(j).getCardsCommunesAndHandPlayer()[2] + " " + joueurs.get(j).getCardsCommunesAndHandPlayer()[3] + " " + joueurs.get(j).getCardsCommunesAndHandPlayer()[4] + " " + joueurs.get(j).getCardsCommunesAndHandPlayer()[5] + " " + joueurs.get(j).getCardsCommunesAndHandPlayer()[6]);
+            for (int j = 0; j < joueursDansLeCoup.size(); j++) {
+                joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[2] = cartesCommunes[0];
+                joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[3] = cartesCommunes[1];
+                joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[4] = cartesCommunes[2];
+                System.out.println("Combinaison du joueur " + joueursDansLeCoup.get(j).getNamePlayer() + " : " + joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[0] + joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[1] + " + " + joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[2] + " " + joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[3] + " " + joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[4] + " " + joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[5] + " " + joueursDansLeCoup.get(j).getCardsCommunesAndHandPlayer()[6]);
             }
-
-            // ************************************
-            // 2e TOUR DE PAROLE POST FLOP
-            // ************************************
 
             System.out.println("---------------------------------------------------------");
             System.out.println(" [ FLOP ] ");
-
             tourDeParole = 2;
-            resetBetPlayer(joueurs);
-            resetBlindPlayer(joueurs);
-            sB = 0;
-            bB = 0;
-            tourDenchere(tourDeParole, joueurs, sB, bB);
+            // On enregistre les mises joueurs precedentes en cas de pot secondaire en fin de tour avant de faire un
+            // reset Bet Player sur le tour de parole
 
-            if (joueurs.size() == 1) {
 
-                // Retourner le joueur gagnant :
+            resetBetPlayer(joueursDansLeCoup);
+//            resetBlindPlayer(joueursDansLeCoup);
+            montantSmallBlind = 0;
+            montantBigBlind = 0;
+            tourDenchere(tourDeParole, joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable);
+
+            if (joueursDansLeCoup.size() == 1) {
+                // Retour et MAJ du joueur gagnant :
+                int gainJetonsJoueur = totalPot;
+                int ancienSolde = joueursDansLeCoup.getFirst().getChipsPlayer();
+                System.out.println(joueursDansLeCoup.getFirst().getNamePlayer() + " gagne le pot (" + gainJetonsJoueur + ")");
+                joueursDansLeCoup.getFirst().setChipsPlayer(ancienSolde + gainJetonsJoueur);
                 continue;
             }
-
-//                // On initialise la valeur MiseMax a 1 pour que les getBetPlayers actuellement a 0 soit differents et que
-//                // l'on puisse realiser le 1er tour de table
-////            miseMax = 1;
-//                // On donne la parole a tout le monde meme a la Big Blind en fin de file  = 1er tour de table :
-//                // Lorsque la boucle va atteindre la taille du tableau, on refait une verif en bouclant sur la liste des joueurs
-//                // restant et en verifiant les getBetPlayer. S'ils sont tous egaux a Mise Max, on sort de la boucle via le "break"
-//
-//                sizeBefore = joueurs.size();
-//                for (int i = 0; i < sizeBefore; i++) {
-//                    sizeBefore = joueurs.size();
-//                    paroleJoueur(joueurs.get(i), joueurs, tourDeParole, sB, bB);
-//                    int sizeAfter = joueurs.size();
-//                    if (sizeBefore == sizeAfter) { // Cela signifie que le joueur reste en jeu et ne s'est pas couche.
-//                        //Si on dépasse
-//                        if (joueurs.get(i).getBetPlayer() != 0) { // Si le joueur a mise, on peut changer la valeur de miseMax, s'il a checke on laisse la miseMax a 1
-//                            miseMax = getMiseMax(joueurs, bB);
-//                        }
-//                        // Si le joueur suivant sort de la taille de la liste :
-//                        if (i + 1 >= sizeAfter) {
-//                            for (int j = 0; j < sizeAfter; j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
-//                                System.out.println("joueur.get(" + j + ").getBetPlayer() :" + joueurs.get(j).getBetPlayer());
-//                                if (joueurs.get(j).getBetPlayer() != miseMax) {
-//                                    i = -1;
-//                                    // Si a la lecture de notre file Joueur, certains joueurs ont encore une mise != de la miseMax
-//                                    // On sort de la verification de joueur et on retourne en debut de boucle,
-//                                    // On met -1 car va etre incremente pour retomber a 0
-//                                }
-//                                // Sinon le joueur a mise la meme somme l'on peut verifier le joueur suivant
-//                            }
-//                        }           // Sinon on incrémente normalement
-//
-//                    } else {                    // Si le joueur s'est couche, alors sizeBefore != sizeAfter
-//                        //Si on dépasse
-//                        if (i >= sizeAfter) {   // Si le joueur sort de la taille de la liste ou est en derniere position
-//                            for (int j = 0; j < joueurs.size(); j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
-//                                if (joueurs.get(j).getBetPlayer() != miseMax) {
-//                                    i = -1;     // On met -1 car va etre incremente pour retomber a 0
-//                                } else {
-//                                    break;
-//                                }
-//                            }              // on revient au debut
-//                        } else {
-//                            i--;
-//                        }
-//                    }
-//                    System.out.println("------------------------------------");
-//                    System.out.println("Valeur de i" + i);
-//                    System.out.println("Taille de la liste joueur" + joueurs.size());
-//                    System.out.println("Valeur de miseMax :" + miseMax);
-//                    if (checkAccordMise(joueurs, miseMax) == true) {
-//                        break;
-//                    }
-//                    System.out.println("------------------------------------");
-//                }
-
 
             // ************************************
             // *** TIRAGE DE LA TURN ***
@@ -250,87 +325,29 @@ public class Main {
 
             tirageTurn(paquet, cartesCommunes);
 
-            // ************************************
-            // *** COMBINAISONS PAR JOUEUR RESTANT EN JEU SUR LA MAIN
-            // ************************************
-
-            for (int i = 0; i < joueurs.size(); i++) {
-                joueurs.get(i).getCardsCommunesAndHandPlayer()[5] = cartesCommunes[3];
-                System.out.println("Combinaison du joueur " + joueurs.get(i).getNamePlayer() + " : " + joueurs.get(i).getCardsCommunesAndHandPlayer()[0] + joueurs.get(i).getCardsCommunesAndHandPlayer()[1] + " + " + joueurs.get(i).getCardsCommunesAndHandPlayer()[2] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[3] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[4] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[5] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[6]);
+            // Affichage des combinaisons des joueurs restant en jeu :
+            for (int i = 0; i < joueursDansLeCoup.size(); i++) {
+                joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[5] = cartesCommunes[3];
+                System.out.println("Combinaison du joueur " + joueursDansLeCoup.get(i).getNamePlayer() + " : " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[0] + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[1] + " + " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[2] + " " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[3] + " " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[4] + " " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[5] + " " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[6]);
             }
 
             System.out.println("---------------------------------------------------------");
             System.out.println(" [ TURN ] ");
             tourDeParole = 3;
+            resetBetPlayer(joueursDansLeCoup);
+//            resetBlindPlayer(joueursDansLeCoup);
+            montantSmallBlind = 0;
+            montantBigBlind = 0;
+            tourDenchere(tourDeParole, joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable);
 
-            resetBetPlayer(joueurs);
-            resetBlindPlayer(joueurs);
-            sB = 0;
-            bB = 0;
-
-            tourDenchere(tourDeParole, joueurs, sB, bB);
-
-            if (joueurs.size() == 1) {
-
-                // Retourner le joueur gagnant :
+            if (joueursDansLeCoup.size() == 1) {
+                // Retour et MAJ du joueur gagnant :
+                int gainJetonsJoueur = totalPot;
+                int ancienSolde = joueursDansLeCoup.getFirst().getChipsPlayer();
+                System.out.println(joueursDansLeCoup.getFirst().getNamePlayer() + " gagne le pot (" + gainJetonsJoueur + ")");
+                joueursDansLeCoup.getFirst().setChipsPlayer(ancienSolde + gainJetonsJoueur);
                 continue;
             }
-
-//
-//            // On initialise la valeur MiseMax a 1 pour que les getBetPlayers actuellement a 0 soit differents et que
-//            // l'on puisse realiser le 1er tour de table
-//            miseMax = 1;
-//            // On donne la parole a tout le monde meme a la Big Blind en fin de file  = 1er tour de table :
-//            // Lorsque la boucle va atteindre la taille du tableau, on refait une verif en bouclant sur la liste des joueurs
-//            // restant et en verifiant les getBetPlayer. S'ils sont tous egaux a Mise Max, on sort de la boucle via le "break"
-//
-//            sizeBefore = joueurs.size();
-//            for (int i = 0; i < sizeBefore; i++) {
-//                sizeBefore = joueurs.size();
-//                paroleJoueur(joueurs.get(i), joueurs, tourDeParole, sB, bB);
-//                int sizeAfter = joueurs.size();
-//                if (sizeBefore == sizeAfter) { // Cela signifie que le joueur reste en jeu et ne s'est pas couche.
-//                    //Si on dépasse
-//                    if (joueurs.get(i).getBetPlayer() != 0) { // Si le joueur a mise, on peut changer la valeur de miseMax, s'il a checke on laisse la miseMax a 1
-//                        miseMax = getMiseMax(joueurs, bB);
-//                    }
-//                    // Si le joueur suivant sort de la taille de la liste :
-//                    if (i + 1 >= sizeAfter) {
-//                        for (int j = 0; j < sizeAfter; j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
-//                            System.out.println("joueur.get(" + j + ").getBetPlayer() :" + joueurs.get(j).getBetPlayer());
-//                            if (joueurs.get(j).getBetPlayer() != miseMax) {
-//                                i = -1;
-//                                // Si a la lecture de notre file Joueur, certains joueurs ont encore une mise != de la miseMax
-//                                // On sort de la verification de joueur et on retourne en debut de boucle,
-//                                // On met -1 car va etre incremente pour retomber a 0
-//                            }
-//                            // Sinon le joueur a mise la meme somme l'on peut verifier le joueur suivant
-//                        }
-//                    }           // Sinon on incrémente normalement
-//
-//                } else {                    // Si le joueur s'est couche, alors sizeBefore != sizeAfter
-//                    //Si on dépasse
-//                    if (i >= sizeAfter) {   // Si le joueur sort de la taille de la liste ou est en derniere position
-//                        for (int j = 0; j < joueurs.size(); j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
-//                            if (joueurs.get(j).getBetPlayer() != miseMax) {
-//                                i = -1;     // On met -1 car va etre incremente pour retomber a 0
-//                            } else {
-//                                break;
-//                            }
-//                        }              // on revient au debut
-//                    } else {
-//                        i--;
-//                    }
-//                }
-//                System.out.println("------------------------------------");
-//                System.out.println("Valeur de i" + i);
-//                System.out.println("Taille de la liste joueur" + joueurs.size());
-//                System.out.println("Valeur de miseMax :" + miseMax);
-//                if (checkAccordMise(joueurs, miseMax) == true) {
-//                    break;
-//                }
-//                System.out.println("------------------------------------");
-//            }
 
             // ************************************
             // *** TIRAGE DE LA RIVER ***
@@ -341,74 +358,20 @@ public class Main {
             System.out.println("---------------------------------------------------------");
             System.out.println(" [ RIVER ] ");
             tourDeParole = 4;
+            resetBetPlayer(joueursDansLeCoup);
+//            resetBlindPlayer(joueursDansLeCoup);
+            montantSmallBlind = 0;
+            montantBigBlind = 0;
+            tourDenchere(tourDeParole, joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable);
 
-            resetBetPlayer(joueurs);
-            resetBlindPlayer(joueurs);
-            sB = 0;
-            bB = 0;
-
-            tourDenchere(tourDeParole, joueurs, sB, bB);
-
-            if (joueurs.size() == 1) {
-
-                // Retourner le joueur gagnant :
+            if (joueursDansLeCoup.size() == 1) {
+                // Retour et MAJ du joueur gagnant :
+                int gainJetonsJoueur = totalPot;
+                int ancienSolde = joueursDansLeCoup.getFirst().getChipsPlayer();
+                System.out.println(joueursDansLeCoup.getFirst().getNamePlayer() + " gagne le pot (" + gainJetonsJoueur + ")");
+                joueursDansLeCoup.getFirst().setChipsPlayer(ancienSolde + gainJetonsJoueur);
                 continue;
             }
-
-//            // On initialise la valeur MiseMax a 1 pour que les getBetPlayers actuellement a 0 soit differents et que
-//            // l'on puisse realiser le 1er tour de table
-//            miseMax = 1;
-//            // On donne la parole a tout le monde meme a la Big Blind en fin de file  = 1er tour de table :
-//            // Lorsque la boucle va atteindre la taille du tableau, on refait une verif en bouclant sur la liste des joueurs
-//            // restant et en verifiant les getBetPlayer. S'ils sont tous egaux a Mise Max, on sort de la boucle via le "break"
-//
-//            sizeBefore = joueurs.size();
-//            for (int i = 0; i < sizeBefore; i++) {
-//                sizeBefore = joueurs.size();
-//                paroleJoueur(joueurs.get(i), joueurs, tourDeParole, sB, bB);
-//                int sizeAfter = joueurs.size();
-//                if (sizeBefore == sizeAfter) { // Cela signifie que le joueur reste en jeu et ne s'est pas couche.
-//                    //Si on dépasse
-//                    if (joueurs.get(i).getBetPlayer() != 0) { // Si le joueur a mise, on peut changer la valeur de miseMax, s'il a checke on laisse la miseMax a 1
-//                        miseMax = getMiseMax(joueurs, bB);
-//                    }
-//                    // Si le joueur suivant sort de la taille de la liste :
-//                    if (i + 1 >= sizeAfter) {
-//                        for (int j = 0; j < sizeAfter; j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
-//                            System.out.println("joueur.get(" + j + ").getBetPlayer() :" + joueurs.get(j).getBetPlayer());
-//                            if (joueurs.get(j).getBetPlayer() != miseMax) {
-//                                i = -1;
-//                                // Si a la lecture de notre file Joueur, certains joueurs ont encore une mise != de la miseMax
-//                                // On sort de la verification de joueur et on retourne en debut de boucle,
-//                                // On met -1 car va etre incremente pour retomber a 0
-//                            }
-//                            // Sinon le joueur a mise la meme somme l'on peut verifier le joueur suivant
-//                        }
-//                    }           // Sinon on incrémente normalement
-//
-//                } else {                    // Si le joueur s'est couche, alors sizeBefore != sizeAfter
-//                    //Si on dépasse
-//                    if (i >= sizeAfter) {   // Si le joueur sort de la taille de la liste ou est en derniere position
-//                        for (int j = 0; j < joueurs.size(); j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
-//                            if (joueurs.get(j).getBetPlayer() != miseMax) {
-//                                i = -1;     // On met -1 car va etre incremente pour retomber a 0
-//                            } else {
-//                                break;
-//                            }
-//                        }              // on revient au debut
-//                    } else {
-//                        i--;
-//                    }
-//                }
-//                System.out.println("------------------------------------");
-//                System.out.println("Valeur de i" + i);
-//                System.out.println("Taille de la liste joueur" + joueurs.size());
-//                System.out.println("Valeur de miseMax :" + miseMax);
-//                if (checkAccordMise(joueurs, miseMax) == true) {
-//                    break;
-//                }
-//                System.out.println("------------------------------------");
-//            }
 
             // ************************************
             // *** SHOWDOWN / ABBATAGE ***
@@ -417,32 +380,36 @@ public class Main {
             System.out.println("---------------------------------------------------------");
             System.out.println(" [ SHOWDOWN ] ");
 
+            // PARTAGE DU POT
+            // Verification du cas N.2 : Le pot est remporte par le joueur ayant la meilleure main
+            // Verification du cas N.3 : Le pot est partage par les joueurs si main de meme valeur
+
             // A Chaque joueur restant encore en jeu, on :
-            for (int i = 0; i < joueurs.size(); i++) {
-                joueurs.get(i).getCardsCommunesAndHandPlayer()[6] = cartesCommunes[4]; // ...affecte la derniere carte River au tableau de combi de chaque joueur
-                System.out.println("Combinaison du joueur " + joueurs.get(i).getNamePlayer() + " : " + joueurs.get(i).getCardsCommunesAndHandPlayer()[0] + joueurs.get(i).getCardsCommunesAndHandPlayer()[1] + " + " + joueurs.get(i).getCardsCommunesAndHandPlayer()[2] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[3] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[4] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[5] + " " + joueurs.get(i).getCardsCommunesAndHandPlayer()[6]);
-                System.out.println(joueurs.get(i).getNamePlayer() + " possede une : " + CombinaisonUtil.getCombinaison(joueurs.get(i)) + " Force :" + CombinaisonUtil.getCombinaison(joueurs.get(i)).getCombinaison().value);
+            for (int i = 0; i < joueursDansLeCoup.size(); i++) {
+                joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[6] = cartesCommunes[4]; // ...affecte la derniere carte River au tableau de combi de chaque joueur
+                System.out.println("Combinaison du joueur " + joueursDansLeCoup.get(i).getNamePlayer() + " : " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[0] + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[1] + " + " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[2] + " " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[3] + " " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[4] + " " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[5] + " " + joueursDansLeCoup.get(i).getCardsCommunesAndHandPlayer()[6]);
+                System.out.println(joueursDansLeCoup.get(i).getNamePlayer() + " possede une : " + CombinaisonUtil.getCombinaison(joueursDansLeCoup.get(i)) + " Force :" + CombinaisonUtil.getCombinaison(joueursDansLeCoup.get(i)). getCombinaison().value);
             }
 
             System.out.println("---------------------------------------------------------");
             System.out.println("Renvoie de la combinaison gagnante");
 
-            List<Joueur> joueursWithHighestCombinaisonValue = getJoueursWithHighestCombinaisonValue(joueurs);
+            List<Joueur> joueursWithHighestCombinaisonValue = getJoueursWithHighestCombinaisonValue(joueursDansLeCoup);
             List<Joueur> joueursWithHighestCombinaison = CombinaisonUtil.departagerJoueurs(joueursWithHighestCombinaisonValue);
 
             for (Joueur joueur : joueursWithHighestCombinaison) {
-                int gainJetonsJoueur = potTotal / joueursWithHighestCombinaison.size();
+                int gainJetonsJoueur = totalPot / joueursWithHighestCombinaison.size();
                 int ancienSolde = joueur.getChipsPlayer();
                 System.out.println(joueur.getNamePlayer() + " gagne " + gainJetonsJoueur);
                 joueur.setChipsPlayer(ancienSolde + gainJetonsJoueur);
             }
 
-            potTotal = 0; // Remise a zero du pot pour la prochaine Main
-            for (Joueur joueur : joueurs) {
-                if (joueur.getChipsPlayer() == 0) {
-                    joueurs.remove(joueur);
-                }
-            }
+            totalPot = 0; // Remise a zero du pot pour la prochaine Main
+//            for (Joueur joueur : joueursDansLeCoup) {
+//                if (joueur.getChipsPlayer() == 0) {
+//                    joueursDansLeCoup.remove(joueur);
+//                }
+//            }
 
             System.out.println(" ************************************************************************************");
             System.out.println(" TO DO LIST / CORRECTIFS A APPORTER : ");
@@ -455,75 +422,202 @@ public class Main {
             System.out.println(" * Creation d'une structure de blind");
             System.out.println(" ************************************************************************************");
 
-        } while (joueurs.size() != 1);
-        // Fin de la main / Tant qu'il reste plus qu'un joueur, il remportera donc le pot
+
+        } while (checkNbJoueurRestant(joueursInscrits) > 1);
+        // Fin de la main / Tant qu'il reste plus qu'un joueur, on continue le tournoi
 
         System.out.println(" Sortie du do while");
+        System.out.println(
 
+                pickUpWinner(joueursInscrits) + " gagne le Tournoi");
 
     } // Fin de la methode main
 
-    private static void tourDenchere(int tourDeParole, LinkedList<Joueur> joueurs, int sB, int bB) throws InterruptedException {
-        // On initialise au debut la valeur MiseMax a savoir la BB :
-        int miseMax = getMiseMax(joueurs, bB);
+    private static void calculDePot(LinkedList<Joueur> joueurAllIn, int[] listeDePots, int i, int nbJoueursSuiventAllIn) {
+        listeDePots[i] = joueurAllIn.get(i).getBetPlayer() * nbJoueursSuiventAllIn;
+    }
 
-        // On donne la parole a tout le monde meme a la Big Blind en fin de file  = 1er tour de table :
-        // Lorsque la boucle va atteindre la taille du tableau, on refait une verif en bouclant sur la liste des joueurs
-        // restant et en verifiant les getBetPlayer. S'ils sont tous egaux a Mise Max, on sort de la boucle via le "break"
+    private static void updateBetPlayerAfterPaymentAllin(Joueur[] joueursInscrits, LinkedList<Joueur> joueurAllIn, int i) {
+        for (Joueur joueursInscrit : joueursInscrits) {
+            joueursInscrit.setBetPlayer(joueursInscrit.getBetPlayer() - joueurAllIn.get(i).getBetPlayer());
+        }
+    }
 
-        int sizeBefore = joueurs.size();
+    private static int checkPlayersFollowAllIn(Joueur[] joueursInscrits, LinkedList<Joueur> joueurAllIn, int i) {
+        int nbJoueursQuiOntPayeLeMontantDuAllIn = 0;
+        for (Joueur joueursInscrit : joueursInscrits) {
+            if (joueursInscrit.getBetPlayer() > joueurAllIn.get(i).getBetPlayer()) {
+                nbJoueursQuiOntPayeLeMontantDuAllIn++;
+            }
+        }
+        return nbJoueursQuiOntPayeLeMontantDuAllIn;
+    }
+
+    private static void setBetTourPlayer(Joueur[] joueursInscrits) {
+        for (Joueur joueursInscrit : joueursInscrits) {
+            joueursInscrit.setBetTourPlayer(joueursInscrit.getBetPlayer());
+        }
+    }
+
+    public static void ordonnerStackJoueurAllIn(LinkedList<Joueur> joueurAllIn) {
+
+        for (int i = 1; i < joueurAllIn.size(); i++) {
+
+            // Si la mise du joueur est inferieure a la mise du joueur precedent, alors on place le joueur actuellement
+            // en lecture en tete de LinkedList
+
+            if (joueurAllIn.get(i).getBetPlayer() < joueurAllIn.get(i - 1).getBetPlayer()) {
+                joueurAllIn.add(i - 1, joueurAllIn.get(i));
+                joueurAllIn.remove(i + 1);
+                i = 0; // on refait le check depuis le debut, va s'incrementer i++ donc prendre la valeur de 1
+            }
+        }
+    }
+
+    private static int nbDeJoueurAllIn(LinkedList<Joueur> joueursDansLeCoup) {
+        int resultat = 0;
+        for (Joueur joueur : joueursDansLeCoup) {
+            if (joueur.getChipsPlayer() == 0) {
+                resultat++;
+            }
+        }
+        return resultat;
+    }
+
+    public static Joueur retourneValueDuPlusPetitStackAllIn(List<Joueur> joueurAllIn) {
+        // Le nombre maxi de jetons en jeu dans la partie 10 000 x 10 joueurs max a la table :
+        int temp = 100000;
+        Joueur plusPetitStack = new Joueur("");
+        for (Joueur joueur : joueurAllIn) {
+            // Si la mise du joueur est inferieure a "temp", "temp" prend la valeur de cette mise
+            if (joueur.getBetPlayer() < temp) {
+                temp = joueur.getBetPlayer();
+                plusPetitStack = joueur;
+            }
+        }
+        //joueurAllIn.remove(plusPetitStack);
+        return plusPetitStack;
+    }
+
+    private static LinkedList<Joueur> checkAllInPreFlop(LinkedList<Joueur> joueursDansLeCoup) {
+        LinkedList<Joueur> joueurAllIn = new LinkedList<>();
+        for (Joueur joueur : joueursDansLeCoup) {
+            if (joueur.getChipsPlayer() == 0) { // Si le joueur a fait all in
+                joueurAllIn.add(joueur);
+            }
+        }
+        return joueurAllIn;
+    }
+
+    private static String pickUpWinner(Joueur[] listJoueur) {
+        String winner = "noName";
+        for (Joueur joueur : listJoueur) {
+            if (joueur.getChipsPlayer() != 0) {
+                winner = joueur.getNamePlayer();
+            }
+        }
+        return winner;
+    }
+
+    private static int checkNbJoueurRestant(Joueur[] listJoueur) {
+        int nbJoueursRestantPartie = 0;
+        for (Joueur joueur : listJoueur) {
+            if (joueur.getChipsPlayer() != 0) {
+                nbJoueursRestantPartie++;
+            }
+        }
+        return nbJoueursRestantPartie;
+    }
+
+    private static void resetCardsCommunesAndHandPlayer(LinkedList<Joueur> joueurs) {
+        for (Joueur joueur : joueurs) {
+            for (int j = 0; j < 7; j++) {
+                joueur.getCardsCommunesAndHandPlayer()[j] = null;
+            }
+        }
+    }
+
+    private static int tourDenchere(int tourDeParole, LinkedList<Joueur> joueursDansLeCoup, int montantSmallBlind, int montantBigBlind, Joueur[] joueursALaTable) throws InterruptedException {
+
+        int miseMax = getMiseMax(joueursDansLeCoup, montantBigBlind);
+        int tourDeTable = 0;
+        int sizeBefore = joueursDansLeCoup.size();
         for (int i = 0; i < sizeBefore; i++) {
-            sizeBefore = joueurs.size();
-            if (joueurs.size() == 1) {
-                // Retourner le joueur gagnant :
-                break;
+            sizeBefore = joueursDansLeCoup.size();
+            if (joueursDansLeCoup.size() == 1) {
+                // Retour et MAJ du joueur gagnant :
+                int gainJetonsJoueur = totalPot;
+                int ancienSolde = joueursDansLeCoup.getFirst().getChipsPlayer();
+                System.out.println(joueursDansLeCoup.getFirst().getNamePlayer() + " gagne le pot (" + gainJetonsJoueur + ")");
+                joueursDansLeCoup.getFirst().setChipsPlayer(ancienSolde + gainJetonsJoueur);
+                continue;
             } else {
-                paroleJoueur(joueurs.get(i), joueurs, tourDeParole, sB, bB);
-                int sizeAfter = joueurs.size();
-                if (sizeBefore == sizeAfter) { // Cela signifie que le joueur reste en jeu et ne s'est pas couche.
-                    //Si on dépasse
-                    if (i + 1 >= sizeAfter) { // Si le joueur suivant sort de la taille de la liste
-                        for (int j = 0; j < sizeAfter; j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
-                            System.out.println("joueur.get(" + j + ").getBetPlayer() :" + joueurs.get(j).getBetPlayer());
-                            if (joueurs.get(j).getBetPlayer() != miseMax) {
-                                i = -1;
-                                // Si a la lecture de notre file Joueur, certains joueurs ont encore une mise differente de la miseMax
-                                // on sort de la verification de joueur et on retourne en debut de boucle,
-                                // on met -1 car va etre incremente pour retomber a 0
+                if (joueursDansLeCoup.get(i).getChipsPlayer() == 0) {
+                    // Si un joueur n'a plus de jetons, on ne lui demande pas
+                    // son avis et on passe au joueur suivant
+
+                    // On verifie tout de meme si le joueur n'a pas de mise "Blinds" en jeu, sinon on les convertit
+                    transfertSiBlindJoueurEnMise(joueursDansLeCoup.get(i), joueursALaTable);
+
+//                    if (joueursDansLeCoup.get(i).getBetPlayer() != 0) {
+//                        // On stocke la mise dans UN TABLEAU DE MISES en cas de partage de pot
+//                        misesJoueurs.add(joueursDansLeCoup.get(i).getBetPlayer());
+//                    }
+//                    continue;
+                } else {
+                    paroleJoueur(joueursDansLeCoup.get(i), joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable);
+                    int sizeAfter = joueursDansLeCoup.size();
+                    if (sizeBefore == sizeAfter) {
+
+                        // Cela signifie que le joueur reste en jeu et ne s'est pas couche.
+                        // Si on dépasse
+
+                        if (i + 1 >= sizeAfter) { // Si le joueur suivant sort de la taille de la liste
+                            for (int j = 0; j < sizeAfter; j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
+                                System.out.println("joueur.get(" + j + ").getBetPlayer() :" + joueursDansLeCoup.get(j).getBetPlayer());
+                                if (joueursDansLeCoup.get(j).getBetPlayer() != miseMax) {
+                                    i = -1;
+                                    tourDeTable++;
+
+                                    // Si a la lecture de notre file Joueur, certains joueursDansLeCoup ont encore une mise differente de la miseMax
+                                    // on sort de la verification de joueur et on retourne en debut de boucle,
+                                    // on met -1 car va etre incremente pour retomber a 0
+                                }
+                                // Sinon cela signifie que tout le monde a mise la meme somme et que l'on peut sortir de la boucle initiale
                             }
-                            // Sinon cela signifie que tout le monde a mise la meme somme et que l'on peut sortir de la boucle initiale
+                        } // Sinon on incremente normalement
+                    } else {                    // Si le joueur s'est couche, alors sizeBefore != sizeAfter
+                        //Si on dépasse
+                        if (i >= sizeAfter) {   // Si le joueur sort de la taille de la liste ou est en derniere position
+                            for (int j = 0; j < joueursDansLeCoup.size(); j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
+                                if (joueursDansLeCoup.get(j).getBetPlayer() != miseMax) {
+                                    i = -1;              // On met -1 car va etre incremente pour retomber a 0
+                                } else {
+                                    tourDeTable++;
+                                    break;
+                                }
+                            }              // on revient au debut
+                        } else {
+                            i--;
                         }
-                    } //else{                // Sinon on incrémente normalement
-//                            i++;
-//                        }
-                } else {                    // Si le joueur s'est couche, alors sizeBefore != sizeAfter
-                    //Si on dépasse
-                    if (i >= sizeAfter) {   // Si le joueur sort de la taille de la liste ou est en derniere position
-                        for (int j = 0; j < joueurs.size(); j++) { // Si tous les betPlayers restant sont egaux a MiseMax, on sort de la boucle
-                            if (joueurs.get(j).getBetPlayer() != miseMax) {
-                                i = -1;              // On met -1 car va etre incremente pour retomber a 0
-                            } else {
-                                break;
-                            }
-                        }              // on revient au debut
-                    } else {
-                        i--;
                     }
                 }
-                miseMax = getMiseMax(joueurs, bB); // on MAJ la mise Max dans le cas ou l'un des joueurs aurait relance avant de verifier
-                // si toutes les mises sont equivalents
+                miseMax = getMiseMax(joueursDansLeCoup, montantBigBlind);
+                // on MAJ la mise Max dans le cas ou l'un des joueursDansLeCoup aurait relance avant de verifier si toutes les
+                // mises sont equivalentes
+
                 System.out.println("------------------------------------");
-                System.out.println("Valeur de i" + i);
-                System.out.println("Taille de la liste joueur" + joueurs.size());
-                System.out.println("Valeur de miseMax :" + miseMax);
-                if (checkAccordMise(joueurs, miseMax) == true) {
+                System.out.println("Valeur de i: " + i);
+                System.out.println("Taille de la liste joueur: " + joueursDansLeCoup.size());
+                System.out.println("Valeur de miseMax: " + miseMax);
+                if (tourDeTable != 0 && checkAccordMise(joueursDansLeCoup, miseMax)) {
                     break;
                 }
                 System.out.println("------------------------------------");
             }
         }
+        return miseMax;
     }
-
 
     private static void checkSmallAndBig(LinkedList<Joueur> joueurs) {
         int rangARemettreEnTeteDeFile = 0;
@@ -543,12 +637,12 @@ public class Main {
         }
     }
 
-    private static void resetBlindPlayer(LinkedList<Joueur> joueurs) {
-        for (Joueur joueur : joueurs) {
-            joueur.setSmallBlind(0);
-            joueur.setBigBlind(0);
-        }
-    }
+//    private static void resetBlindPlayer(LinkedList<Joueur> joueurs) {
+//        for (Joueur joueur : joueurs) {
+//            joueur.setSmallBlind(0);
+//            joueur.setBigBlind(0);
+//        }
+//    }
 
     private static boolean smallBlindIsStillInGame(LinkedList<Joueur> joueurs) {
         boolean result = false;
@@ -570,24 +664,26 @@ public class Main {
         return result;
     }
 
-    private static void premierTourDeTable(int tourDeParole, LinkedList<Joueur> joueurs, int sB, int bB) throws
-            InterruptedException {
-        int nbJoueurs = joueurs.size();
-        for (int i = 0; i < nbJoueurs; i++) {
-            paroleJoueur(joueurs.get(i), joueurs, tourDeParole, sB, bB);
-        }
-    }
 
-    private static void initialisationListeJoueur(Joueur[] listJoueur, LinkedList<Joueur> joueurs) {
-        joueurs.clear(); // On vide la file dans le cas ou elle contient des donnees pre
-        for (Joueur joueur : listJoueur) { // Initialisation des joueurs crees en debut de partie dans la variable list joueur
-            if (joueur.getChipsPlayer() != 0) { // Si le joueur du tableau de joueur a encore des jetons, alors on l'ajoute a la file joueurs
-                joueurs.add(joueur);
+    // ************************************
+    //     INITIALISATION LISTE JOUEUR
+    // On vide la file dans le cas ou elle contient des donnees precedentes
+    // Initialisation des joueursDansLeCoup crees en debut de partie
+    // Si le joueur du tableau de joueur JoueursInscrits a encore des jetons,
+    // alors on l'ajoute a la file joueursDansLeCoup
+    // ************************************
+
+    private static void initialisationListeJoueur(Joueur[] joueursInscrits, LinkedList<Joueur> joueursDansLeCoup) {
+        joueursDansLeCoup.clear();
+        for (Joueur joueur : joueursInscrits) {
+            if (joueur.getChipsPlayer() != 0) {
+                joueursDansLeCoup.add(joueur);
             }
         }
     }
 
     // ************************************
+    //     DISTRIBUTION MAIN JOUEUR
     // La fonction distribution joueur pioche les 2 cartes de la variable paquet en parametre puis affecte la 1ere puis
     // la seconde carte au joueur place en parametre
     // ************************************
@@ -600,7 +696,7 @@ public class Main {
             joueur.getCardsCommunesAndHandPlayer()[j] = pioche[j];
         } // MAJ du tableau combinaison du joueur
 
-        System.out.println("Main : " + joueur.getMain()[0].toString() + joueur.getMain()[1]);
+        System.out.println(joueur + " : Main : " + joueur.getMain()[0].toString() + joueur.getMain()[1]);
         System.out.println("-----------------------------");
     }
 
@@ -670,31 +766,6 @@ public class Main {
         }
     }
 
-    private static void tourDeParoleJusquaAccordMise(LinkedList<Joueur> joueurs, int tourDeParole,
-                                                     int miseMax, int sB, int bB) throws InterruptedException {
-        int i = 0;
-        while (joueurs.get(i).getBetPlayer() != getMiseMax(joueurs, bB)) {
-            // Faire tant que la mise du joueur a parler n'est pas au niveau du dernier ayant parle
-            int sizeBefore = joueurs.size();
-            paroleJoueur(joueurs.get(i), joueurs, tourDeParole, sB, bB);
-            int sizeAfter = joueurs.size();
-            if (sizeBefore == sizeAfter) {
-                //Si on dépasse
-                if (i + 1 >= sizeAfter) {
-                    i = 0;
-                } else {
-                    //On incrémente normalement
-                    i++;
-                }
-            } else {
-                //Si on dépasse
-                if (i >= sizeAfter) {
-                    i = 0;
-                }
-            }
-        }
-    }
-
     // ************************************
     // METHODE PAROLE JOUEUR :
     // - Initialisation du choix par default a zero avant qu'il parle
@@ -708,13 +779,22 @@ public class Main {
     //      Methode "DoActionJoueur" qui recupere la variable "choix" et agit en consequence (Passe/Suit/Relance)
     // ************************************
 
-
-    private static void paroleJoueur(Joueur joueur, LinkedList<Joueur> joueurs, int tourDeParole, int sB, int bB) throws
+    private static void paroleJoueur(Joueur joueur, LinkedList<Joueur> joueursDansLeCoup, int sB, int bB, Joueur[] joueursALaTable) throws
             InterruptedException {
         int choix = 0;
-        int miseMax = getMiseMax(joueurs, bB);
+        int miseMax = getMiseMax(joueursDansLeCoup, bB);
+        int montantBigBlind = 40;
         do {
-            System.out.println(joueur + " Jetons :" + joueur.getChipsPlayer() + " - [Pot Total:" + potTotal + "]" + "\n" + " a la parole : 1/ Passer 2/ Suivre (" + getMontantSuivre(joueur, miseMax) + ") 3/ Relancer (>=" + getMontantRelance(joueur, miseMax, tourDeParole) + ")");
+            transfertSiBlindJoueurEnMise(joueur, joueursALaTable);
+            System.out.println(joueur + " Jetons :" + joueur.getChipsPlayer() + " - [Pot Total:" + totalPot + "]" + "\n" + " a la parole :" + "\n"+ "1/ Passer ");
+            if (getMontantSuivre(joueur,miseMax) == 0) {
+                System.out.println("2/ Check");
+            } else {
+                System.out.println("2/ Suivre(" + getMontantSuivre(joueur, miseMax) + ")");
+            }
+            if (joueur.getChipsPlayer() > miseMax) {
+                System.out.println("3/ Relancer( >= " + getMontantRelance(joueur, miseMax, montantBigBlind) + ")");
+            }
             ConsoleInput choixJoueur = new ConsoleInput(30, 5);
             String stringJoueur = choixJoueur.readLine();
             if (stringJoueur == null) {
@@ -728,92 +808,151 @@ public class Main {
                     System.out.println("La saisie est incorrecte");
                 }
             }
-            doActionJoueur(joueur, joueurs, tourDeParole, choix, miseMax, sB, bB);
+            doActionJoueur(joueur, joueursDansLeCoup, choix, miseMax, montantBigBlind, joueursALaTable);
         } while (choix != 1 && choix != 2 && choix != 3); // Faire tant que le choix de l'utilisateur ne correspond pas aux actions proposees
     }
 
     private static int getMontantSuivre(Joueur joueur, int miseMax) {
-        return miseMax - joueur.getBigBlind() - joueur.getSmallBlind() - joueur.getBetPlayer();
+        int montantSuivre = 0;
+        if (joueur.getChipsPlayer() > miseMax) {
+            montantSuivre = miseMax - joueur.getBetPlayer();
+        } else { // Si le joueur n'a pas suffisamment de jetons...
+            montantSuivre = joueur.getChipsPlayer(); // On affiche le montant des jetons restants
+        }
+        return montantSuivre;
     }
 
-    private static int getMontantRelance(Joueur joueur, int miseMax, int tourDeParole) {
+    private static int getMontantRelance(Joueur joueur, int miseMax, int montantBigBlind) {
         int resultat = 0;
 
-        if (tourDeParole == 1) {
-            resultat = ((2 * miseMax) - joueur.getBigBlind() - joueur.getSmallBlind() - joueur.getBetPlayer());
-        } else if (tourDeParole == 2) { //miseMax=0 un joueur doit jouer au moins 40 et sinon le double
-            if (miseMax == 0) { // Si personne n'a mise...
-                resultat = 40;  // ...alors on renvoie le montant de la BB
-            } else {
-                resultat = (2 * miseMax) - joueur.getBetPlayer();
-            }
-        } else if (tourDeParole == 3 || tourDeParole == 4) { //miseMax=0 un joueur doit jouer au moins 40 et sinon le double
-            if (miseMax == 0) { // Si personne n'a mise...
-                resultat = 2 * 40;  // ...alors on renvoie 2 fois le montant de la BB
-            } else {
-                resultat = (2 * miseMax) - joueur.getBetPlayer();
-            }
+        if (miseMax == 0) { // Si personne n'a encore mise..
+            resultat = montantBigBlind - joueur.getBetPlayer(); // On relance au min le montant de la big blind
+        } else { // Si une mise est deja en jeu..
+            resultat = ((2 * miseMax) - joueur.getBetPlayer()); // On relance au min le double de la mise
         }
         return resultat;
     }
 
-    private static void doActionJoueur(Joueur joueur, LinkedList<Joueur> joueurs, int tourDeParole, int choix,
-                                       int miseMax, int sB, int bB) {
+    private static void doActionJoueur(Joueur joueur, LinkedList<Joueur> joueursDansLeCoup, int choix,
+                                       int miseMax, int montantBigBlind, Joueur[] joueursALaTable) {
         switch (choix) {
             case 1:
                 System.out.println(joueur + " passe son tour ");
-                joueurs.remove(joueur);
+                copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable);
+                joueursDansLeCoup.remove(joueur);
                 break;
 
             case 2:
                 int add = getMontantSuivre(joueur, miseMax);
-                if (joueur.getSmallBlind() > 0) {
-                    joueur.setBetPlayer(sB + add);
-                    joueur.setChipsPlayer(joueur.getChipsPlayer() - add);
-                } else if (joueur.getBigBlind() > 0) {
-                    joueur.setBetPlayer(bB + add);
-                    joueur.setChipsPlayer(joueur.getChipsPlayer() - add);
-                } else {
-                    joueur.setBetPlayer(joueur.getBetPlayer() + add);
-                    joueur.setChipsPlayer(joueur.getChipsPlayer() - add);
-                }
-                System.out.println(joueur + " suit " + add + " jetons");
-                potTotal = potTotal + add;
+                joueur.setBetPlayer(joueur.getBetPlayer() + add);
+                copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable);
+                joueur.setChipsPlayer(joueur.getChipsPlayer() - add);
+                System.out.println(joueur + " suit " + joueur.getBetPlayer() + " jetons");
+                totalPot = totalPot + add;
+                copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur,joueursALaTable);
                 break;
 
             case 3:
                 Scanner chx = new Scanner(System.in);
                 int relance = 0;
+                System.out.print(joueur + " decide de relancer : \n A combien souhaitez vous relancer ? ");
+                relance = chx.nextInt();
+                if (miseMax == montantBigBlind) { // Cas 1ERE RELANCE PRE FLOP
+                    while (relance > joueur.getChipsPlayer() || relance < montantBigBlind) {
+                        if (relance > joueur.getChipsPlayer()) {
+                            System.out.println("Vous n'avez pas assez de jetons. Saisir a nouveau :");
+                            relance = chx.nextInt();
+                        } else {
+                            System.out.println("Vous devez relancer au minimum le montant de la big blind");
+                            relance = chx.nextInt();
+                        }
+                    }
+                }
+                // ***************************************************************************
+                // Si personne n'est encore entré dans le coup,
+                // alors la relance doit être supérieure ou égal au double de la grosse blind.
+                // ***************************************************************************
 
-                if (tourDeParole == 1) {
-                    System.out.print(joueur + " decide de relancer : \n A combien souhaitez vous relancer ? ");
-                    relance = chx.nextInt();
-                    while (relance < (2 * miseMax) - joueur.getBetPlayer() || relance > joueur.getChipsPlayer()) {
-                        System.out.println("Vous devez relancer au minimum le double de la mise actuelle OU vous n'avez pas assez de jetons ");
-                        relance = chx.nextInt();
+                else if (miseMax == 0) {
+                    while (relance > joueur.getChipsPlayer() || relance < montantBigBlind) {
+
+                        // if(miseMax=0)... Si aucun Joueur n'a encore mise, a partir du flop (car miseMax vaut min
+                        // la bB en pre-flop), on rentre dans la condition :
+                        // Tant que le montant saisie de la relance est superieur aux jetons ou que le montant de la
+                        // relance est inferieur au montant de la bigBlind, alors on reste dans le "while"
+                        // Affichage de l'erreur de saisie selon le cas :
+
+                        if (relance > joueur.getChipsPlayer()) {
+                            System.out.println("Vous n'avez pas assez de jetons. Saisir a nouveau :");
+                            relance = chx.nextInt();
+                        } else {
+                            System.out.println("Vous devez relancer au minimum le montant de la big blind");
+                            relance = chx.nextInt();
+                        }
                     }
-                } else if (tourDeParole == 2) {
-                    System.out.print(joueur + " decide de relancer : \n A combien souhaitez vous relancer ? ");
-                    relance = chx.nextInt();
-                    while ((relance < ((miseMax) == 0 ? (40) : (2 * miseMax) - joueur.getBetPlayer())) || (relance > joueur.getChipsPlayer())) {
-                        System.out.println("Vous devez relancer au minimum la valeur de la BB Post Flop OU le double de la mise actuelle OU vous n'avez pas assez de jetons ");
-                        relance = chx.nextInt();
-                    }
-                } else if (tourDeParole == 3 || tourDeParole == 4) {
-                    System.out.print(joueur + " decide de relancer : \n A combien souhaitez vous relancer ? ");
-                    relance = chx.nextInt();
-                    while ((relance < ((miseMax) == 0 ? (2 * 40) : (2 * miseMax) - joueur.getBetPlayer())) || (relance > joueur.getChipsPlayer())) {
-                        System.out.println("Vous devez relancer au minimum la valeur de 2BB au 3e/4e tour de parole OU le double de la mise actuelle OU vous n'avez pas assez de jetons ");
+                }
+                // ***************************************************************************
+                // Si une personne a déjà relancé, alors la différence entre la surrelance et la dernière mise
+                // doit être supérieure ou égale à la différence entre la dernière mise et celle d'avant.
+                // ***************************************************************************
+
+                else { // Cas ou l'on a deja quelqu'un qui a mise apres le flop
+                    while (relance > joueur.getChipsPlayer() || relance < ((2 * miseMax) - joueur.getBetPlayer())) {
+                        if (relance > joueur.getChipsPlayer()) {
+                            System.out.println("Vous n'avez pas assez de jetons. Saisir a nouveau :");
+                            relance = chx.nextInt();
+                        } else {
+                            System.out.println("Vous devez relancer au minimum le double de la mise actuelle");
+                        }
                         relance = chx.nextInt();
                     }
                 }
                 joueur.setBetPlayer(joueur.getBetPlayer() + relance);
+                copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable);
                 joueur.setChipsPlayer(joueur.getChipsPlayer() - relance);
                 System.out.println(joueur + " relance a " + joueur.getBetPlayer() + " jetons");
-                potTotal = potTotal + relance;
+                totalPot = totalPot + relance;
+
                 break;
         }
-        System.out.println("potTotal = " + potTotal);
+        System.out.println("potTotal = " + totalPot);
+    }
+
+    private static void copieMiseJoueurDansLeCoupVersJoueurALaTable(Joueur joueur, Joueur[] joueursALaTable) {
+        for (Joueur joueur1 : joueursALaTable) {
+            if (joueur1.getNamePlayer()==joueur.getNamePlayer()) {
+                joueur1.setBetTourPlayer(joueur.getBetPlayer());
+                // MAJ de la MISE DU JOUEUR DANS LE TABLEAU JOUEURALATABLE AU CAS OU LE JOUEUR SE COUCHE (Sort de JoueurDansLeCoup)
+                // AVANT LE TOUR D'ENCHERE POUR GARDER UN HISTORIQUE
+            }
+        }
+    }
+
+    private static void transfertSiBlindJoueurEnMise(Joueur joueurDansLeCoup, Joueur[] joueurALaTable) {
+        // Si le joueurDansLeCoup est small blind, on convertit sa blind dans sa mise et on reset la blind
+        if (joueurDansLeCoup.getSmallBlind() > 0) {
+            joueurDansLeCoup.setBetPlayer(joueurDansLeCoup.getSmallBlind());
+            // On va chercher joueur dans le tableau de JoueurALaTable et on MAJ egalement sa mise dans le cas ou celui
+            // ci quitte le coup et prendre en consideration ses jetons engages sur la table pour le calcul des pots :
+            for (Joueur joueur : joueurALaTable) {
+                if (joueur == joueurDansLeCoup) {
+                    joueur.setBetPlayer(joueurDansLeCoup.getSmallBlind());
+                }
+            }
+            joueurDansLeCoup.setSmallBlind(0);
+        }
+        // Si le joueurDansLeCoup est big blind, on convertit sa blind dans sa mise et on reset la blind
+        if (joueurDansLeCoup.getBigBlind() > 0) {
+            joueurDansLeCoup.setBetPlayer(joueurDansLeCoup.getBigBlind());
+            // On va chercher joueur dans le tableau de JoueurALaTable et on MAJ egalement sa mise dans le cas ou celui
+            // ci quitte le coup et prendre en consideration ses jetons engages sur la table pour le calcul des pots :
+            for (Joueur joueur : joueurALaTable) {
+                if (joueur == joueurDansLeCoup) {
+                    joueur.setBetPlayer(joueurDansLeCoup.getBigBlind());
+                }
+            }
+            joueurDansLeCoup.setBigBlind(0);
+        }
     }
 
     private static int getMiseMax(LinkedList<Joueur> joueurs, int bigBlind) {
@@ -833,6 +972,11 @@ public class Main {
             if (joueur.getBetPlayer() == miseMax) {
                 System.out.println("joueur :" + joueur + ":getbetPlayer :" + joueur.getBetPlayer());
                 count++;
+            } else { // Il se peut que la mise du joueur ne soit pas egale a a la miseMax car il est au tapis, dans ce
+                // cas on compte egalement count++ pour que le tourDenchere prenne fin
+                if (joueur.getChipsPlayer() == 0) {
+                    count++;
+                }
             }
         }
         return (count == joueurs.size());

@@ -6,7 +6,9 @@ public class Joueur {
     int chipsPlayer = 10000;                // Stack de Jetons par joueur, indice 0-joueur0 etc.
     Card[] main = new Card[2];
     Card[] cardsCommunesAndHandPlayer = new Card[7];
-    int betPlayer = 0;
+    int betPlayer = 0;                      // Mise du joueur au tour de parole
+    int betTourPlayer = 0;                   // Somme cumule des mises joueurs a chaque tour de parole afin de pouvoir
+    // comparer les differentes hauteur de pot en cas de joueur all in
     int smallBlind = 0;
     int bigBlind = 0;
     boolean isSmallBlind = false;
@@ -39,6 +41,10 @@ public class Joueur {
 
     public int getBetPlayer() {
         return betPlayer;
+    }
+
+    public int getBetTourPlayer() {
+        return betTourPlayer;
     }
 
     public int getSmallBlind() {
@@ -83,6 +89,10 @@ public class Joueur {
         this.betPlayer = betPlayer;
     }
 
+    public void setBetTourPlayer(int betTourPlayer) {
+        this.betTourPlayer = betTourPlayer;
+    }
+
     public void setSmallBlind(int smallBlind) {
         this.smallBlind = smallBlind;
     }
@@ -102,9 +112,6 @@ public class Joueur {
     public void setCardsCommunesAndHandPlayer(Card[] cardsCommunesAndHandPlayer) {
         this.cardsCommunesAndHandPlayer = cardsCommunesAndHandPlayer;
     }
-
-
-
 
 
     @Override

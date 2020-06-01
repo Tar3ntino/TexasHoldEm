@@ -304,8 +304,8 @@ public class CombinaisonUtil {
             Rang kicker2 = null;
             int kickervalue = 0;
 
-            kicker1 = getKicker1(resultat, countByRang, kicker1, kickervalue);
-            kicker2 = getKicker2(resultat, countByRang, kicker2, kickervalue);
+            kicker1 = getKicker1(countByRang, kicker1, kickervalue);
+            kicker2 = getKicker2(countByRang, kicker2, kickervalue);
             resultat.setHauteurEtKickers(Arrays.asList(rangLePlusNombreux, kicker1, kicker2));
             return resultat;
         }
@@ -410,9 +410,9 @@ public class CombinaisonUtil {
             Rang kicker3 = null;
             int kickervalue = 0;
 
-            kicker1 = getKicker1(resultat, countByRang, kicker1, kickervalue);
-            kicker2 = getKicker2(resultat, countByRang, kicker2, kickervalue);
-            kicker3 = getKicker3(resultat, countByRang, kicker3, kickervalue);
+            kicker1 = getKicker1(countByRang, kicker1, kickervalue);
+            kicker2 = getKicker2(countByRang, kicker2, kickervalue);
+            kicker3 = getKicker3(countByRang, kicker3, kickervalue);
             resultat.setHauteurEtKickers(Arrays.asList(rangLePlusNombreux, kicker1, kicker2, kicker3));
             return resultat;
         }
@@ -424,8 +424,8 @@ public class CombinaisonUtil {
 // ************************************
     public static Resultat checkHighCard(Card[] cardsCommunesAndHandPlayer) {
         Map<Rang, Integer> countByRang = countByRang(cardsCommunesAndHandPlayer);
-        ArrayList<Integer> counts = new ArrayList<>(countByRang.values()); // on declare une variable Arraylist pour stocker les int afin de pouvoir les classer
-        Collections.sort(counts, Comparator.reverseOrder()); // on appelle une classe utilitaire Collections avec la methode de tri "sort"
+        ArrayList<Integer> counts = new ArrayList<>(countByRang.values());// on declare une variable Arraylist pour stocker les int afin de pouvoir les classer
+        Collections.sort(counts, Comparator.reverseOrder());// on appelle une classe utilitaire Collections avec la methode de tri "sort"
         if (counts.get(0) < 2 && CombinaisonUtil.checkFlush(cardsCommunesAndHandPlayer) == null && CombinaisonUtil.checkStraight(cardsCommunesAndHandPlayer) == null) {
             Resultat resultat = new Resultat();
             resultat.setCombinaison(Combinaison.CarteHaute);
@@ -438,11 +438,11 @@ public class CombinaisonUtil {
 
             int kickervalue = 0;
 
-            getKicker1(resultat, countByRang, kicker1, kickervalue);
-            getKicker2(resultat, countByRang, kicker2, kickervalue);
-            getKicker3(resultat, countByRang, kicker3, kickervalue);
-            getKicker4(resultat, countByRang, kicker4, kickervalue);
-            getKicker5(resultat, countByRang, kicker5, kickervalue);
+            kicker1 = getKicker1(countByRang, kicker1, kickervalue);
+            kicker2 = getKicker2(countByRang, kicker2, kickervalue);
+            kicker3 = getKicker3(countByRang, kicker3, kickervalue);
+            kicker4 = getKicker4(countByRang, kicker4, kickervalue);
+            kicker5 = getKicker5(countByRang, kicker5, kickervalue);
             resultat.setHauteurEtKickers(Arrays.asList(kicker1, kicker2, kicker3, kicker4, kicker5));
 
             return resultat;
@@ -450,7 +450,7 @@ public class CombinaisonUtil {
         return null;
     }
 
-    private static Rang getKicker1(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker1, int kickervalue) {
+    private static Rang getKicker1(Map<Rang, Integer> countByRang, Rang kicker1, int kickervalue) {
         for (Rang rang1 : countByRang.keySet()) {
             if (rang1.getValue() > kickervalue) {
                 kicker1 = rang1;
@@ -462,7 +462,7 @@ public class CombinaisonUtil {
         return kicker1;
     }
 
-    private static Rang getKicker2(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker2, int kickervalue) {
+    private static Rang getKicker2(Map<Rang, Integer> countByRang, Rang kicker2, int kickervalue) {
         for (Rang rang1 : countByRang.keySet()) {
             if (rang1.getValue() > kickervalue) {
                 kicker2 = rang1;
@@ -474,7 +474,7 @@ public class CombinaisonUtil {
         return kicker2;
     }
 
-    private static Rang getKicker3(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker3, int kickervalue) {
+    private static Rang getKicker3(Map<Rang, Integer> countByRang, Rang kicker3, int kickervalue) {
         for (Rang rang1 : countByRang.keySet()) {
             if (rang1.getValue() > kickervalue) {
                 kicker3 = rang1;
@@ -486,7 +486,7 @@ public class CombinaisonUtil {
         return kicker3;
     }
 
-    private static Rang getKicker4(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker4, int kickervalue) {
+    private static Rang getKicker4(Map<Rang, Integer> countByRang, Rang kicker4, int kickervalue) {
         for (Rang rang1 : countByRang.keySet()) {
             if (rang1.getValue() > kickervalue) {
                 kicker4 = rang1;
@@ -498,7 +498,7 @@ public class CombinaisonUtil {
         return kicker4;
     }
 
-    private static Rang getKicker5(Resultat resultat, Map<Rang, Integer> countByRang, Rang kicker5, int kickervalue) {
+    private static Rang getKicker5(Map<Rang, Integer> countByRang, Rang kicker5, int kickervalue) {
         for (Rang rang1 : countByRang.keySet()) {
             if (rang1.getValue() > kickervalue) {
                 kicker5 = rang1;
@@ -575,32 +575,3 @@ public class CombinaisonUtil {
         return result;
     }
 }
-
-//    public static Map<Joueur, Integer> getHighestResultat(LinkedList<Joueur> joueurs) {
-//        Resultat resultat = new Resultat();
-//
-//        // On cree un Map pour stocker Joueur et sa valeur combi
-//        Map<Joueur, Integer> valueCombiPlayers = new HashMap<Joueur, Integer>();
-//
-//        for (int i = 0; i < joueurs.size(); i++) {
-//            valueCombiPlayers.put(joueurs.get(i), CombinaisonUtil.getCombinaison(joueurs.get(i)).valueCombinaison);
-//        } // le tableau Map Joueur/ValeurCombi est rempli
-//
-//        // Il faut le trier :
-//        System.out.println("Map non triee :" + valueCombiPlayers);
-//
-//        return valueCombiPlayers;
-//
-////        Comparator<Integer> keyComparator = new Comparator<Integer>() {
-////            @Override
-////            public int compare(Integer integer, Integer t1) {
-////                return integer.compareTo(t1);
-////            }
-////        };
-////        Map<Joueur, Integer> sortedOnKeyMap = new TreeMap(keyComparator);
-////        sortedOnKeyMap.putAll(valueCombiPlayers);
-//
-////        for (int i = 0; i < joueurs.size(); i++) {
-////            CombinaisonUtil.getCombinaison(joueurs.get(i)).getValueCombinaison();
-////        }
-
