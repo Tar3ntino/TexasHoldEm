@@ -116,7 +116,7 @@ public class Joueur {
 
     @Override
     public String toString() {
-        return namePlayer + " Jetons: " + chipsPlayer + " \n";
+        return namePlayer;
     }
 
 }// FIN DE LA CLASSE JOUEUR

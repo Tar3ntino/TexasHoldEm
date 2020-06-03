@@ -164,18 +164,19 @@ public class CombinaisonUtil {
 
     // ************************************
     // 4 - FLUSH (COULEUR)
+    // Declaration d'une variable de type "Map" qui associe les types "Couleur" et "Integer"
     // ************************************
 
     public static Resultat checkFlush(Card[] cardsCommunesAndHandPlayer) {
 
-        Map<Couleur, Integer> countByColor = countByColor(cardsCommunesAndHandPlayer);
+        Map<Couleur, Integer> countByColor = countByColor(cardsCommunesAndHandPlayer); // Notre tableau Map qui contient le nombre de chaque couleur rencontree
         ArrayList<Integer> counts = new ArrayList<>(countByColor.values()); // on recupere les valeurs de comptage couleur
         Collections.sort(counts, Comparator.reverseOrder()); // on les classe decroissant
 
         if (counts.get(0) >= 5) {
             Resultat resultat = new Resultat();
             setCouleurMax(resultat, countByColor);
-            resultat.setCombinaison(Combinaison.Couleur);
+            resultat.setCombinaison(Combinaison.Couleur); // On a detecte une couleur donc on setup la combinaison en couleur
 
             int hauteurMax = 0;
 
@@ -203,6 +204,17 @@ public class CombinaisonUtil {
             }
         }
     }
+
+    // ************************************
+    //        Methode countByColor
+    // Instanciation d'un objet "HashMap"
+    // Iteration sur "cardsCommunesAndHandPlayer"
+    //    - On recupere la couleur de chaque carte
+    //    - On recupere dans la Map la couleur correspondante lue precedemment et son nb actuel a savoir au debut 0
+    //    - On incremente de 1 le compteur a la couleur rencontree
+    //
+    // On renvoie la Map "countByColor"
+    // ***********************************
 
     private static Map<Couleur, Integer> countByColor(Card[] cardsCommunesAndHandPlayer) {
         Map<Couleur, Integer> countByColor = new HashMap<>();
@@ -259,8 +271,7 @@ public class CombinaisonUtil {
             hauteursetKickers.add(Rang.Cinq);
             resultat.setHauteurEtKickers(hauteursetKickers);// et l'on setup la hauteur de la suite
             return resultat;
-        }
-        else return null;
+        } else return null;
     }
 
     private static void getHauteurSuite(Rang[] allRangs, List<Integer> hauteurs, int i, Resultat resultat) {
@@ -524,15 +535,15 @@ public class CombinaisonUtil {
 
     private static List<Combinaison> initListCombi() {
         List<Combinaison> listCombinaison = new ArrayList<Combinaison>();
-        listCombinaison.add(Combinaison.CarteHaute);
-        listCombinaison.add(Combinaison.Paire);
-        listCombinaison.add(Combinaison.DoublePaire);
-        listCombinaison.add(Combinaison.Brelan);
-        listCombinaison.add(Combinaison.Suite);
-        listCombinaison.add(Combinaison.Couleur);
-        listCombinaison.add(Combinaison.Full);
-        listCombinaison.add(Combinaison.Carre);
         listCombinaison.add(Combinaison.QuinteFlush);
+        listCombinaison.add(Combinaison.Carre);
+        listCombinaison.add(Combinaison.Full);
+        listCombinaison.add(Combinaison.Couleur);
+        listCombinaison.add(Combinaison.Suite);
+        listCombinaison.add(Combinaison.Brelan);
+        listCombinaison.add(Combinaison.DoublePaire);
+        listCombinaison.add(Combinaison.Paire);
+        listCombinaison.add(Combinaison.CarteHaute);
         return listCombinaison;
     }
 

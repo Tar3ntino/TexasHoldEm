@@ -15,6 +15,7 @@ public class Paquet {
 
     public Paquet() {                                                   // Constructeur d'un paquet de cartes vides pouvant accueillir 52 cartes
         System.out.println("Creation d'un paquet de 52 cartes...");        // Initialisation de variables pour le constructeur :
+        System.out.println("-----------------------------");
         Couleur[] allCouleurs = Couleur.class.getEnumConstants();       // Il nous faut un tableau contenant toutes les possibilites d'enum "Couleur" + "Rang"
         Rang[] allRangs = Rang.class.getEnumConstants();
 
