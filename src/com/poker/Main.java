@@ -9,13 +9,10 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
 
-        int tourDeParole = 0;
-
         // ************************************
         // PARAMETRAGE DU JEU :
         // - Initialisation des Joueurs
         // - Affectation des "Noms de Joueurs" dans le tableau de "N" joueursDansLeCoup initialise precedemment
-        // - Attribution des mains Joueurs du paquet melange
         // ************************************
 
         // Initialisation :
@@ -92,22 +89,23 @@ public class Main {
             System.out.println("-----------------------------");
             System.out.println("Affichage de la liste des joueursDansLeCoup sur la Main N." + numMain + ":\n" + joueursDansLeCoup);
 
+
             if (numMain == 1) {
                 Random startDealer = new Random();
                 dealer = startDealer.nextInt(nombreDeJoueurs);
+                System.out.println("Valeur de l'indice dealer" + dealer);
             } else {
                 do {
-                    if (dealer + 1 < joueursALaTable.length) {                      // 1+1 < 6
-                        if (joueursALaTable[dealer + 1].getChipsPlayer() == 0) {    // pamy a des jetons donc on ne rentre pas dans la condition
-                            dealer++;
-                        }
-                    } else {            // on ne devrait pas rentrer dans ce else puisque le if est "Vraie"
-                        dealer = 0;
+                    // SI L'INDICE SUIVANT EXISTE :
+                    if (dealer + 1 < joueursALaTable.length) {
+                        dealer++; // ... ALORS ON INCREMENTE
+                    } else {
+                        dealer = 0; // ... SINON ON RENVOIE A ZERO
                     }
-                } while (joueursALaTable[dealer + 1].getChipsPlayer() == 0);        // Il reste des jetons a Pamy
-                dealer++;                                                           // on peut passer le bouton a Pamy en incrementant la variable dealer
+                } while (joueursALaTable[dealer].getChipsPlayer() == 0);
+                // TANT QUE LE NOUVEAU DEALER N'A PAS DE JETONS (LE JOUEUR SIEGE A LA TABLE MAIS N'EST PLUS CONSIDERE
+                // A LA TABLE CAR N'A PLUS DE JETONS, ON REITERE L'OPERATION
             }
-
             System.out.println("Tirage Dealer : " + joueursALaTable[dealer].getNamePlayer() + " a la distribution");
 
             // ************************************
@@ -149,7 +147,7 @@ public class Main {
             joueursDansLeCoup.getFirst().setChipsPlayer(chipsPlayerBefore - miseSmallBlindJoueur);
             totalPot = totalPot + miseSmallBlindJoueur;
 
-            System.out.println("Small Blind : " + joueursDansLeCoup.getFirst() + " Met " + miseSmallBlindJoueur + " jetons");
+            System.out.println("Small Blind : " + joueursDansLeCoup.getFirst() + " met " + miseSmallBlindJoueur + " jetons");
 
             // on place le joueur SB actuellement en tete de pile > en queue de pile :
             joueursDansLeCoup.addLast(joueursDansLeCoup.getFirst());
@@ -178,7 +176,7 @@ public class Main {
             joueursDansLeCoup.getFirst().setChipsPlayer(chipsPlayerBefore - miseBigBlindJoueur);
             totalPot = totalPot + miseBigBlindJoueur;
 
-            System.out.println("Big Blind : " + joueursDansLeCoup.getFirst() + " Met " + miseBigBlindJoueur + " jetons");
+            System.out.println("Big Blind : " + joueursDansLeCoup.getFirst() + " met " + miseBigBlindJoueur + " jetons");
             System.out.println("-----------------------------");
 
             // on place le joueur BB actuellement en tete de file > en queue de file :
@@ -210,14 +208,11 @@ public class Main {
             //      > Si "joueurAllIn" > 1 :
             //   On classe par ordre croissant le montant du tapis de chaque joueur afin de definir N-1 pots
             //
-            //
             // ************************************
-
-            int minimumARelancer = montantBigBlind;
-
+            int bbMinRelance = 40;
+            boolean estRelanceBloquee = false;
             System.out.println(" [ PRE-FLOP ] ");
-            tourDeParole = 1;
-            tourDenchere(tourDeParole, joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable);
+            tourDenchere(joueursDansLeCoup, montantBigBlind, joueursALaTable, bbMinRelance, estRelanceBloquee);
 
             // PARTAGE DU POT
             // Verification du cas N.1 : Tous les joueurs se sont couches.
@@ -291,14 +286,12 @@ public class Main {
 
             System.out.println("---------------------------------------------------------");
             System.out.println(" [ FLOP ] ");
-            tourDeParole = 2;
-
             // On enregistre les mises joueurs precedentes en cas de pot secondaire en fin de tour avant de faire un
             // reset Bet Player sur le tour de parole
             resetBetPlayer(joueursDansLeCoup);
             montantSmallBlind = 0;
             montantBigBlind = 0;
-            tourDenchere(tourDeParole, joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable);
+            tourDenchere(joueursDansLeCoup, montantBigBlind, joueursALaTable, bbMinRelance, estRelanceBloquee);
             if (returnGagnantSiUnJoueurDansLeCoup(joueursDansLeCoup)) continue;
 
             // ************************************
@@ -315,11 +308,10 @@ public class Main {
 
             System.out.println("---------------------------------------------------------");
             System.out.println(" [ TURN ] ");
-            tourDeParole = 3;
             resetBetPlayer(joueursDansLeCoup);
             montantSmallBlind = 0;
             montantBigBlind = 0;
-            tourDenchere(tourDeParole, joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable);
+            tourDenchere(joueursDansLeCoup, montantBigBlind, joueursALaTable, bbMinRelance, estRelanceBloquee);
             if (returnGagnantSiUnJoueurDansLeCoup(joueursDansLeCoup)) continue;
 
             // ************************************
@@ -330,11 +322,10 @@ public class Main {
 
             System.out.println("---------------------------------------------------------");
             System.out.println(" [ RIVER ] ");
-            tourDeParole = 4;
             resetBetPlayer(joueursDansLeCoup);
             montantSmallBlind = 0;
             montantBigBlind = 0;
-            tourDenchere(tourDeParole, joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable);
+            tourDenchere(joueursDansLeCoup, montantBigBlind, joueursALaTable, bbMinRelance, estRelanceBloquee);
             if (returnGagnantSiUnJoueurDansLeCoup(joueursDansLeCoup)) continue;
 
             // ************************************
@@ -378,24 +369,24 @@ public class Main {
 
             System.out.println(" ************************************************************************************");
             System.out.println(" TO DO LIST / CORRECTIFS A APPORTER : ");
-            System.out.println(" * PROBLEME ACTUEL DANS LE CAS OU TOUT LE MONDE CHECK POST FLOP CAR MISEMAX=1....> 1er tour de Parole");
-            System.out.println(" * Revoir la condition de la relance car on doit pouvoir miser all in meme si < mise min autorisee");
-            System.out.println(" * Revoir affichage seulement du tour 3 et 4 : Cas Call min Post Flop (tour2) = BB, call min turn et river (tour3et4) = 2BB min");
-            System.out.println(" * Remplacer Suivre a (0) par Parole && Relancer par call si betPlayer.first=betplayer.last=0 ");
+            System.out.println(" * Gerer le cas de la relance bloquee");
+            // des qu'il y a une relance (Vrai ou Fausse), il va falloir verifier le statut joueurBloque Vrai ou Faux. Il est Faux par defaut.
+            // Pour determiner si le joueur est bloque ou pas, il va falloir lire sa mise engagee et la comparer seulement a miseMax
             System.out.println(" * Gerer les cas de Pot 1 Pot 2 etc....");
-            System.out.println(" * Desactiver le choix relancer si les jetons du joueur sont inferieur a la mise min de relance");
             System.out.println(" * Creation d'une structure de blind");
+            System.out.println(" * Importer un timer en debut de partie");
+            System.out.println(" * Couper le son d'un joueur qui n'est plus dans le coup");
+            System.out.println(" * Revoir le cas ou 2 joueurs se mettent all in successivement, le minimumARelancer doit rester identique");
+            System.out.println(" * Cas du bouton mort : si un joueur BB quittent JoueurALaTable, son siege doit rester considere pour les 2 prochains tours SB et Dealer");
+            System.out.println(" * Cas du bouton mort : si un joueur SB quittent JoueurALaTable, son siege doit rester considere pour le prochain tour du Dealer");
             System.out.println(" ************************************************************************************");
 
 
-        } while (
-                checkNbJoueurRestant(joueursInscrits) > 1);
+        } while (checkNbJoueurRestant(joueursInscrits) > 1);
         // Fin de la main / Tant qu'il reste plus qu'un joueur, on continue le tournoi
 
         System.out.println(" Sortie du do while");
-        System.out.println(
-
-                pickUpWinner(joueursInscrits) + " gagne le Tournoi");
+        System.out.println(pickUpWinner(joueursInscrits) + " gagne le Tournoi");
 
     } // Fin de la methode main
 
@@ -510,9 +501,9 @@ public class Main {
         return winner;
     }
 
-    private static int checkNbJoueurRestant(Joueur[] listJoueur) {
+    private static int checkNbJoueurRestant(Joueur[] listJoueursInscrits) {
         int nbJoueursRestantPartie = 0;
-        for (Joueur joueur : listJoueur) {
+        for (Joueur joueur : listJoueursInscrits) {
             if (joueur.getChipsPlayer() != 0) {
                 nbJoueursRestantPartie++;
             }
@@ -528,13 +519,18 @@ public class Main {
         }
     }
 
-    private static int tourDenchere(int tourDeParole, LinkedList<Joueur> joueursDansLeCoup, int montantSmallBlind, int montantBigBlind, Joueur[] joueursALaTable) throws InterruptedException {
-        int minimumARelancer = montantBigBlind;
-        int miseMax = getMiseMax(joueursDansLeCoup, montantBigBlind);
+    private static int tourDenchere(LinkedList<Joueur> joueursDansLeCoup, int montantBigBlind, Joueur[] joueursALaTable, int bbMinRelance, boolean estRelanceBloquee) throws InterruptedException {
+        int miseMax = getMiseMax(joueursDansLeCoup, montantBigBlind); // MM:40
         int tourDeTable = 0;
         int sizeBefore = joueursDansLeCoup.size();
+
+        ArrayList resultatParoleJoueur = new ArrayList();
+        resultatParoleJoueur.add(bbMinRelance);        // affectation du int minimumARelancer dans la liste  MR:40
+        resultatParoleJoueur.add(estRelanceBloquee);       // affectation du booleen dans la liste              ERB:False
+
         for (int i = 0; i < sizeBefore; i++) {
             sizeBefore = joueursDansLeCoup.size();
+
             if (joueursDansLeCoup.size() == 1) {
                 // Retour et MAJ du joueur gagnant :
                 int gainJetonsJoueur = totalPot;
@@ -543,20 +539,13 @@ public class Main {
                 joueursDansLeCoup.getFirst().setChipsPlayer(ancienSolde + gainJetonsJoueur);
                 continue;
             } else {
-                if (joueursDansLeCoup.get(i).getChipsPlayer() == 0) {
-                    // Si un joueur n'a plus de jetons, on ne lui demande pas
-                    // son avis et on passe au joueur suivant
 
-                    // On verifie tout de meme si le joueur n'a pas de mise "Blinds" en jeu, sinon on les convertit
-                    transfertSiBlindJoueurEnMise(joueursDansLeCoup.get(i), joueursALaTable);
+                // Si le joueur a des jetons, on lui demande son avis (sinon on passera au joueur suivant)
 
-//                    if (joueursDansLeCoup.get(i).getBetPlayer() != 0) {
-//                        // On stocke la mise dans UN TABLEAU DE MISES en cas de partage de pot
-//                        misesJoueurs.add(joueursDansLeCoup.get(i).getBetPlayer());
-//                    }
-//                    continue;
-                } else {
-                    minimumARelancer = paroleJoueur(joueursDansLeCoup.get(i), joueursDansLeCoup, montantSmallBlind, montantBigBlind, joueursALaTable, minimumARelancer);
+                if (joueursDansLeCoup.get(i).getChipsPlayer() != 0) {
+                    // 60 et false
+                    resultatParoleJoueur = paroleJoueur(joueursDansLeCoup.get(i), joueursDansLeCoup, montantBigBlind, bbMinRelance, joueursALaTable, resultatParoleJoueur);
+                    // 60 et false
                     int sizeAfter = joueursDansLeCoup.size();
                     if (sizeBefore == sizeAfter) {
 
@@ -592,15 +581,19 @@ public class Main {
                             i--;
                         }
                     }
+                } else {
+                    // On verifie tout de meme si le joueur n'a pas de mise "Blinds" en jeu meme s'il n'a pas de jetons, sinon on les convertit
+                    transfertSiBlindJoueurEnMise(joueursDansLeCoup.get(i), joueursALaTable);
                 }
+
                 miseMax = getMiseMax(joueursDansLeCoup, montantBigBlind);
                 // on MAJ la mise Max dans le cas ou l'un des joueursDansLeCoup aurait relance avant de verifier si toutes les
                 // mises sont equivalentes
 
-                System.out.println("------------------------------------");
-                System.out.println("Valeur de i: " + i);
-                System.out.println("Taille de la liste joueur: " + joueursDansLeCoup.size());
-                System.out.println("Valeur de miseMax: " + miseMax);
+                //System.out.println("------------------------------------");
+                //System.out.println("Valeur de i: " + i);
+                //System.out.println("Taille de la liste joueur: " + joueursDansLeCoup.size());
+                //System.out.println("Valeur de miseMax: " + miseMax);
                 if (tourDeTable != 0 && checkAccordMise(joueursDansLeCoup, miseMax)) {
                     break;
                 }
@@ -618,13 +611,13 @@ public class Main {
         if (bigBlindIsStillInGame(joueurs)) {
             rangARemettreEnTeteDeFile++;
         }
-        System.out.println("Valeur de rangAMettreEnTeteDeFile" + rangARemettreEnTeteDeFile);
+        //System.out.println("Valeur de rangAMettreEnTeteDeFile" + rangARemettreEnTeteDeFile);
 
         for (int i = 0; i < rangARemettreEnTeteDeFile; i++) {
-            System.out.println("Affichage de la file joueur AVANT ajout/retrait" + joueurs);
+            //System.out.println("Affichage de la file joueur AVANT ajout/retrait" + joueurs);
             joueurs.addFirst(joueurs.getLast()); // On remet le joueur rang bB en tete de liste
             joueurs.removeLast();
-            System.out.println("Affichage de la file joueur APRES ajout/retrait" + joueurs);
+            //System.out.println("Affichage de la file joueur APRES ajout/retrait" + joueurs);
         }
     }
 
@@ -760,38 +753,82 @@ public class Main {
     //      ► Appel de cette methode lors de la saisie du joueur et stockage dans une variable de type "String"
     //
     //      Methode "DoActionJoueur" qui recupere la variable "choix" et agit en consequence (Passe/Suit/Relance)
+    //
+    // miseMax different de 0 (il y a deja une mise sur table)
+    //      chipsPlayer < miseMax
+    //          1) Se coucher
+    //          2) Suivre (all in)
+    //      chipsPlayer > miseMax
+    //          1) Se coucher
+    //          2) Suivre
+    //      chipsPlayer < sommeMiseMaxMinimumARelancer
+    //          3) "Fausse" Relance en all in
+    //      chipsPlayer > sommeMiseMaxMinimumARelancer
+    //          3) Relancer libre
+    //
+    // miseMax vaut 0 (personne n'a encore mise)
+    //      chipsPlayer < bigBlind
+    //          2) Check (suivre a 0)
+    //          3) Miser (all in)
+    //      chipsPlayer > bigBlind
+    //          2) Check (suivre a 0)
+    //          3) Miser libre
+    //
     // ************************************
 
-    private static int paroleJoueur(Joueur joueur, LinkedList<Joueur> joueursDansLeCoup, int sB, int bB, Joueur[] joueursALaTable, int minimumARelancer) throws
+
+    private static ArrayList paroleJoueur(Joueur joueur, LinkedList<Joueur> joueursDansLeCoup, int montantBigBlind, int bbMinRelance, Joueur[] joueursALaTable, ArrayList resultatParoleJoueur) throws
             InterruptedException {
-        int choix = 0;
-        int miseMax = getMiseMax(joueursDansLeCoup, bB);
-        int montantBigBlind = 40;
+        int choix = 0;                              // JR1 : BB(40) MM(100)
+        int miseMax = getMiseMax(joueursDansLeCoup, montantBigBlind);
+        int sommeMiseMaxMinimumARelancer = miseMax + (int) resultatParoleJoueur.get(0); // JR1 : 100+60
+        // (int) resultatParoleJoueur.get(0) = minimimumARelancer qui a evolue suite a la parole des Joueurs precedent
+
         do {
             transfertSiBlindJoueurEnMise(joueur, joueursALaTable);
             System.out.println(joueur + " a la parole:" + "\n" + "Stack: " + joueur.getChipsPlayer() + "\n" + "Mise engagee: " + joueur.getBetPlayer() + "\n" + "Pot Total: " + totalPot);
             System.out.println("Main: " + joueur.getMain()[0].toString() + joueur.getMain()[1]);
             System.out.println("-----------------------------");
 
-            if (miseMax != 0) {
-                System.out.println("1/ Passer");
+            int tapisPlusMiseJoueur = joueur.getChipsPlayer() + joueur.getBetPlayer();
+
+            if (miseMax != 0) {                         // Si quelqu'un a mise....
+                if (tapisPlusMiseJoueur <= miseMax) {   // Si le tapis du joueur est inferieur ou egale a miseMax, le cas de la relance bloquee ne se posse pas....
+                    System.out.println("1/ Passer");
+                    System.out.println("2/ All-in(" + getMontantSuivre(joueur, miseMax) + ")");
+                } else {                                // Si le tapis du joueur est superieur a la miseMax actuel, le joueur peut potentiellement relancer...
+                    System.out.println("1/ Passer");
+                    System.out.println("2/ Suivre(" + getMontantSuivre(joueur, miseMax) + ")");
+
+                    if (tapisPlusMiseJoueur < sommeMiseMaxMinimumARelancer) {
+                        // Si le tapis du joueur est inferieur a la somme miseMax + Minimum A Relancer exemple 130+60, il ne pourra pas faire de "vraie" relance
+                        System.out.println("3/ All-in (" + joueur.getChipsPlayer() + ")");
+                    } else {                             // C'est dans ce cas la que le joueur peut relancer.... ON introduit une nouvelle verification avant...
+                        // Si nous avons un joueur qui a fait une "fausse" relance
+                        if (resultatParoleJoueur.get(1).equals(true)) {
+                            // Si le joueur n'a pas mise OU si la somme de (son ancienne mise + le minimumARelancerApresSonBet) est < miseMax il a le droit de relancer :
+                            if (joueur.getBetPlayer() == 0 || (joueur.getBetPlayer() + joueur.getMinimumARelancerApresBetPlayer() < miseMax)) {
+                                System.out.println("3/ Relancer(>= " + sommeMiseMaxMinimumARelancer + ")");
+                                resultatParoleJoueur.set(1, false);
+                            }
+                            // Sinon le joueur est bloque et peut seulement Suivre, pas de possibilite de relance
+                        }
+                        // Si aucune "fausse" relance, le joueur peut relancer normalement
+                        else {
+                            System.out.println("3/ Relancer(>= " + sommeMiseMaxMinimumARelancer + ")");
+                        }
+                    }
+                }
+            } else { // Si Mise Max = 0, personne n'a mise et nous ne pouvons donc pas avoir de relances bloquees...
+                if (tapisPlusMiseJoueur < (int) resultatParoleJoueur.get(0)) {
+                    System.out.println("2/ Check");
+                    System.out.println("3/ All-in(" + getMontantSuivre(joueur, miseMax) + ")");
+                } else {
+                    System.out.println("2/ Check");
+                    System.out.println("3/ Miser( >= " + sommeMiseMaxMinimumARelancer + ")");
+                }
             }
-            if (getMontantSuivre(joueur, miseMax) == 0) {
-                System.out.println("2/ Check");
-            } else if (joueur.getChipsPlayer() < miseMax) {
-                System.out.println("2/ All-in(" + getMontantSuivre(joueur, miseMax) + ")");
-            } else {
-                System.out.println("2/ Suivre(" + getMontantSuivre(joueur, miseMax) + ")");
-            }
-            // Cas de la 1ere mise sur table (n'est pas une relance mais un "bet")
-            if (miseMax == 0 && joueur.getChipsPlayer() > miseMax) {
-                System.out.println("3/ Miser( >= " + minimumARelancer + ")");
-            } else if (joueur.getChipsPlayer() > miseMax) {
-                System.out.println("Valeur de miseMax:" + miseMax);
-                System.out.println("Valeur de minimumARelancer:" + minimumARelancer);
-                int sommeMiseMaxminimumARelancer = miseMax + minimumARelancer;
-                System.out.println("3/ Relancer(>= " + sommeMiseMaxminimumARelancer + ")");
-            }
+
             ConsoleInput choixJoueur = new ConsoleInput(30, 5);
             String stringJoueur = choixJoueur.readLine();
             if (stringJoueur == null) {
@@ -804,12 +841,12 @@ public class Main {
                 } catch (NumberFormatException e) {
                     System.out.println("La saisie est incorrecte");
                 }
-            }
-            minimumARelancer = doActionJoueur(joueur, joueursDansLeCoup, choix, miseMax, montantBigBlind, joueursALaTable, minimumARelancer);
+            }                                                                     // MM:100       BB:40           MR:40                          MR(0):60   ERB(1): FALSE
+            resultatParoleJoueur = doActionJoueur(joueur, joueursDansLeCoup, choix, miseMax, montantBigBlind, bbMinRelance, joueursALaTable, resultatParoleJoueur);
         } while (choix != 1 && choix != 2 && choix != 3); // Faire tant que le choix de l'utilisateur ne correspond pas aux actions proposees
-        System.out.println("Affichage de minimumARelancer" + minimumARelancer);
-        return minimumARelancer;
+        return resultatParoleJoueur;
     }
+
 
     private static int getMontantSuivre(Joueur joueur, int miseMax) {
         int montantSuivre = 0;
@@ -831,92 +868,203 @@ public class Main {
         return addMontantRelance;
     }
 
-    private static int doActionJoueur(Joueur joueur, LinkedList<Joueur> joueursDansLeCoup, int choix,
-                                      int miseMax, int montantBigBlind, Joueur[] joueursALaTable, int minimumARelancer) {
+    private static ArrayList doActionJoueur(Joueur joueur, LinkedList<Joueur> joueursDansLeCoup, int choix,
+                                            int miseMax, int montantBigBlind, int bbMinRelance, Joueur[] joueursALaTable, ArrayList resultatParoleJoueur) {
+        //                                      100              40                  40                                    MR(0):60   ERB(1): FALSE
         switch (choix) {
             case 1:
                 actionDePasser(joueur, joueursDansLeCoup, joueursALaTable);
                 break;
-            case 2:
+            case 2:                      //40
                 actionDeSuivre(joueur, miseMax, joueursALaTable);
                 break;
-            case 3:
-                minimumARelancer = actionDeRelancer(joueur, miseMax, montantBigBlind, joueursALaTable, minimumARelancer);
+            case 3:                                              //100       40                            MR(0):60   ERB(1): FALSE
+                resultatParoleJoueur = actionDeRelancer(joueur, miseMax, bbMinRelance, joueursALaTable, resultatParoleJoueur);
                 break;
         }
-        System.out.println("potTotal = " + totalPot);
-        System.out.println("Valeur de minimumARelancer :" + minimumARelancer);
-        return minimumARelancer;
+        System.out.println("potTotal = " + totalPot); // 160
+        miseMax = getMiseMax(joueursDansLeCoup, montantBigBlind);
+        System.out.println("valeur de miseMax:" + miseMax); // 100
+        System.out.println("Valeur de minimumARelancer :" + (int) resultatParoleJoueur.get(0)); // 60
+        return resultatParoleJoueur;
     }
 
-    private static int actionDeRelancer(Joueur joueur, int miseMax, int montantBigBlind, Joueur[] joueursALaTable, int minimumARelancer) {
+
+    // ************************************
+    // METHODE "actionDeRelancer" :
+    // La methode renvoie "resultatParoleJoueur" de type "ArrayList" qui contiendra 2 variables:
+    //      - (int)resultatActionDeRelancer.get(0) (minimumARelancer): le montant minimum a relancer que le joueur a rajouter a la mise Max actuelle sur table
+    //      - resultatActionDeRelancer.get(1) (estRelanceBloquee) : un booleen qui indique une "fausse" relance ou le joueur se retrouve all in en misant
+    //     entre la mise Max actuelle sur table et le montant minimal d'une relance
+    //
+    //  3 Scenarios se distinguent :
+    //      (1) miseMax = bigBlind        => relance > (2 * montantBigBlind)
+    //      (2) miseMax = 0               => relance > montantBigBlind
+    //      (3) miseMax !=0, !=bigBlind   => relance > (miseMax + minimumARelancer - joueur.getBetPlayer())
+    //
+    //      (1) miseMax = bigBlind        => Cas d'une 1ere relance Pre-Flop
+    //      (2) miseMax = 0               => Cas ou aucun Joueur n'a encore mise, a partir du flop (car miseMax vaut min la bB en pre-flop)
+    //      (3) miseMax !=0, !=bigBlind   => Cas ou l'on a deja quelqu'un qui a mise apres le flop
+    //
+    //  Ex. du cas (1) : A Blinds 20-40, un joueur ne peut pas relancer a 60....
+    //  La miseMax vaut la BB avant que le joueur prenne la parole. C'est le cas pour une 1ere relance pre flop
+    //
+    //  SI      le joueur decide de mettre plus que ses jetons, il part en all in par defaut....
+    //
+    //      SI      le montant minimal de relance n'a pas ete atteint = cas de relance bloquee avec joueur en all in
+    //  C'est un cas de "fausse" relance, le minimum A Relancer reste inchange de celui precedemment, seul miseMax differe
+    //
+    //      SINON   le montant minimal de la relance est atteint, on attribut au joueur une valeur de reference "mimimumARelancer"
+    //  Dans le cas ou un autre joueur serait amene a faire une "fausse" relance a tapis, le joueur actuel ayant precedemment relance
+    //  se retrouvera "bloque". Il ne pourra etre debloque que si la valeur de la miseMax (avant la fin du tour d'Enchere) n'excede ou
+    //  ne soit egal a la valeur minimumARelancerApresBetPlayer
+    //
+    //  SINON    le montant saisie de la relance ne depasse pas le stack de jetons du joueur, le joueur ne sera donc pas en "all in"
+    //
+    //      SI      le joueur a un nombre de jetons suffisant pour payer la mise Minimale requise
+    //
+    //          SI  sa relance saisie est inferieure a ce montant, alors il devra saisir a nouveau
+    //
+    //          SINON   le montant minimal de la relance est atteint, on attribut au joueur une valeur de reference "mimimumARelancer"
+    //  Dans le cas ou un autre joueur serait amene a faire une "fausse" relance a tapis, le joueur actuel ayant precedemment relance
+    //  se retrouvera "bloque". Il ne pourra etre debloque que si la valeur de la miseMax (avant la fin du tour d'Enchere) n'excede ou
+    //  ne soit egal a la valeur minimumARelancerApresBetPlayer
+    //
+    //      SINON   le montant minimal de relance n'a pas ete atteint = cas de relance bloquee avec joueur en all in
+    //      C'est un cas de "fausse" relance, le minimum A Relancer reste inchange de celui precedemment, seul miseMax differe
+    //
+    //
+    // - Cas de la gestion du "joueur bloque" : En cas de relance à tapis inférieure à la relance minimum : les joueurs ayant déjà misé ne peuvent pas
+    // sur-relancer. Les joueurs placés après et n’ayant pas encore misé peuvent sur-relancer (toujours au minimu du montant du gros blind
+    // ou de la mise ou relance d’origine)
+    //    ex: ouverture à 200, tapis à 290, relance minimum à 490 (total). Un joueur placé avant mais dont la mise ou la relance initiale
+    //    a finalement été doublée par le cumul de plusieurs petits tapis peut à nouveau sur-relancer. »
+    //
+    //
+    // ************************************
+
+    private static ArrayList actionDeRelancer(Joueur joueur, int miseMax, int bbMinRelance, Joueur[] joueursALaTable, ArrayList resultatParoleJoueur) {
+        //300              40                                   MR(0):100   ERB(1): FALSE
         Scanner chx = new Scanner(System.in);
         int relance = 0;
-        System.out.print(joueur + " decide de relancer : \n A combien souhaitez vous relancer ? ");
-        relance = chx.nextInt();
-        if (miseMax == montantBigBlind) { // Cas 1ERE RELANCE PRE FLOP
+        int miseEngagee = joueur.getBetPlayer();
+
+
+        if (miseMax == bbMinRelance) {         // 300!=40.... on va donc donc le else
+
             // Condition particuliere : A 20-40, un joueur ne peut pas relancer a 60....
-            while (relance > joueur.getChipsPlayer() || relance < 2 * montantBigBlind) {
-                if (relance > joueur.getChipsPlayer()) {
-                    System.out.println("Vous n'avez pas assez de jetons. Saisir a nouveau :");
-                    relance = chx.nextInt();
-                } else { // il faudra considerer le cas ou le mec a un getchipsplayer entre montantBigBlind
-                    System.out.println("Vous devez relancer au minimum d'une big blind");
-                    relance = chx.nextInt();
-                }
-            }
-        }
 
-        // ***************************************************************************
-        // Si personne n'est encore entré dans le coup,
-        // alors la relance doit être supérieure ou égal a la grosse blind.
-        // ***************************************************************************
+            if (joueur.getChipsPlayer() >= (2 * bbMinRelance)) { // LE JOUEUR A LES MOYENS DE PAYER LA RELANCE MINIMUM
 
-        else if (miseMax == 0) {
-            while (relance > joueur.getChipsPlayer() || relance < montantBigBlind) {
-
-                // if(miseMax=0)... Si aucun Joueur n'a encore mise, a partir du flop (car miseMax vaut min
-                // la bB en pre-flop), on rentre dans la condition :
-                // Tant que le montant saisie de la relance est superieur aux jetons ou que le montant de la
-                // relance est inferieur au montant de la bigBlind, alors on reste dans le "while"
-                // Affichage de l'erreur de saisie selon le cas :
-
-                if (relance > joueur.getChipsPlayer()) {
-                    System.out.println("Vous n'avez pas assez de jetons. Saisir a nouveau :");
-                    relance = chx.nextInt();
-                } else {
-                    System.out.println("Vous devez relancer au minimum le montant de la big blind");
-                    relance = chx.nextInt();
-                }
-            }
-        }
-        // ***************************************************************************
-        // Si une personne a déjà relancé, alors la différence entre la surrelance et la dernière mise
-        // doit être supérieure ou égale à la différence entre la dernière mise et celle d'avant.
-        // ***************************************************************************
-        else { // Cas ou l'on a deja quelqu'un qui a mise apres le flop
-            while (relance > joueur.getChipsPlayer() || relance < ((2 * miseMax) - joueur.getBetPlayer())) {
-                if (relance > joueur.getChipsPlayer()) {
-                    System.out.println("Vous n'avez pas assez de jetons. Saisir a nouveau :");
-                    relance = chx.nextInt();
-                } else {
-                    System.out.println("Vous devez relancer au minimum le double de la mise actuelle");
-                }
+                System.out.print(joueur + " decide de relancer : \n A combien souhaitez vous relancer ? ");
                 relance = chx.nextInt();
+
+                while (relance < 2 * bbMinRelance) { // TANT QUE SA RELANCE EST < A MIN.RELANCE => SAISIR A NOUVEAU
+                    System.out.println("Vous devez relancer au minimum d'une big blind (+" + bbMinRelance + ") sur la miseMax actuelle (" + miseMax + ")");
+                    relance = chx.nextInt();
+                }
+                // SA SAISIE DEPASSE MAINTENANT LE MIN. REQUIS....
+                // SI SA RELANCE DEPASSE OU EST EGAL A SON STACK, ON LE MET ALL IN PAR DEFAUT :
+
+                relance = relanceOverStackAllinAndMAJRelanceMinimum(joueur, miseMax, resultatParoleJoueur, relance);
+
+            } else { // LE JOUEUR N'A PAS LES MOYENS DE PAYER LA RELANCE MINIMUM DE 2*bbMinRelance, IL VA DONC PARTIR EN ALL IN AVEC SON STACK
+
+                relance = joueur.getChipsPlayer();
+                System.out.println(joueur + " mise all in avec " + relance + " jetons");
+                joueur.setMinimumARelancerApresBetPlayer(0);
+
+                // le joueur se trouvant "all in" il n'a plus besoin de valeur rattachee car il ne pourra pas etre "debloque"
+
+                resultatParoleJoueur.set(1, true);
+
+                // LA MISE SERA CONSIDERE COMME UNE RELANCE "blocante" POUR LES FUTURS JOUEURS
+                // IL N'Y A PAS DE MAJ DANS CE CAS POUR LE MIN A RELANCER CAR CE N'EST PAS CONSIDERE COMME UNE VRAIE RELANCE
+            }
+        } else if (miseMax == 0) {    // SI PERSONNE N'EST ENCORE RENTRE DANS LE COUP, LA RELANCE DOIT ETRE SUPERIEUR OU EGAL A LA BB   // MM=300.... on va dans le else
+            if (joueur.getChipsPlayer() >= bbMinRelance) { // LE JOUEUR A LES MOYENS DE PAYER LA RELANCE MINIMUM
+
+                System.out.print(joueur + " decide de relancer : \n A combien souhaitez vous relancer ? ");
+                relance = chx.nextInt();
+
+                while (relance < bbMinRelance) { // TANT QUE SA RELANCE EST < A MIN.RELANCE => SAISIR A NOUVEAU
+                    System.out.println("Vous devez relancer au minimum d'une big blind (+" + bbMinRelance + ")");
+                    relance = chx.nextInt();
+                }
+                // SA SAISIE DEPASSE MAINTENANT LE MIN. REQUIS....
+                // SI SA RELANCE DEPASSE OU EST EGAL A SON STACK, ON LE MET ALL IN PAR DEFAUT :
+                if (relance >= joueur.getChipsPlayer()) {
+                    relance = joueur.getChipsPlayer();
+                    System.out.println(joueur + " mise all in avec " + relance + " jetons");
+                } else { // SINON LA RELANCE EST COMPRISE ENTRE LE MIN.RELANCE ET LE STACK JOUEUR :
+                    // MISE A JOUR DE MIN A RELANCER :
+                    if (relance > miseMax) {
+                        resultatParoleJoueur.set(0, relance);
+                        // ON GARGE LA VALEUR MIN A RELANCER ATTACHE AU JOUEUR DANS LE CAS OU UN AUTRE
+                    }
+                }
+            } else { // LE JOUEUR N'A PAS LES MOYENS DE PAYER LA RELANCE MINIMUM DE bbMinRelance, IL VA DONC PARTIR EN ALL IN AVEC SON STACK
+                relance = joueur.getChipsPlayer();
+                System.out.println(joueur + " mise all in avec " + relance + " jetons");
+                joueur.setMinimumARelancerApresBetPlayer(0); // le joueur se trouvant "all in" il n'a plus besoin de valeur rattachee car il ne pourra pas etre "debloque"
+                resultatParoleJoueur.set(1, true); // LA MISE SERA CONSIDERE COMME UNE RELANCE "blocante" POUR LES FUTURS JOUEURS
+                // IL N'Y A PAS DE MAJ DANS CE CAS POUR LE MIN A RELANCER CAR CE N'EST PAS CONSIDERE COMME UNE VRAIE RELANCE
+            }
+        } else {  // SI UNE PERSONNE A DEJA RELANCE ALORS LA DIFF ENTRE LA SURRELANCE ET LA DERNIERE MISE DOIT ETRE
+            // SUPERIEURE OU EGALE A LA DIFFERENCE ENTRE LA DERNIERE  MISE ET CELLE D'AVANT
+
+            // 9100 >= (8000 + 8000 - 0)
+
+            if (joueur.getChipsPlayer() >= ((miseMax + (int) resultatParoleJoueur.get(0) - joueur.getBetPlayer()))) { // LE JOUEUR A LES MOYENS DE PAYER LA RELANCE MINIMUM
+                // 210 <  (250+150-0)
+
+                System.out.print(joueur + " decide de relancer : \n A combien souhaitez vous relancer ? ");
+                relance = chx.nextInt();
+
+                while (relance < ((miseMax + (int) resultatParoleJoueur.get(0) - joueur.getBetPlayer()))) { // TANT QUE SA RELANCE EST < A MIN.RELANCE => SAISIR A NOUVEAU
+                    System.out.println("Vous devez relancer au minimum (+" + (int) resultatParoleJoueur.get(0) + ") sur la miseMax actuelle (" + miseMax + ")");
+                    relance = chx.nextInt();
+                }
+                // SA SAISIE DEPASSE MAINTENANT LE MIN. REQUIS....
+                // SI SA RELANCE DEPASSE OU EST EGAL A SON STACK, ON LE MET ALL IN PAR DEFAUT :
+                relance = relanceOverStackAllinAndMAJRelanceMinimum(joueur, miseMax, resultatParoleJoueur, relance);
+            } else { // LE JOUEUR N'A PAS LES MOYENS DE PAYER LA RELANCE MINIMUM DE bbMinRelance, IL VA DONC PARTIR EN ALL IN AVEC SON STACK
+
+                relance = joueur.getChipsPlayer();
+                System.out.println(joueur + " mise all in avec " + relance + " jetons");
+                joueur.setMinimumARelancerApresBetPlayer(0); // le joueur se trouvant "all in" il n'a plus besoin de valeur rattachee car il ne pourra pas etre "debloque"
+                resultatParoleJoueur.set(1, true); // LA MISE SERA CONSIDERE COMME UNE RELANCE "blocante" POUR LES FUTURS JOUEURS
+                // IL N'Y A PAS DE MAJ DANS CE CAS POUR LE MIN A RELANCER CAR CE N'EST PAS CONSIDERE COMME UNE VRAIE RELANCE
             }
         }
-        joueur.setBetPlayer(joueur.getBetPlayer() + relance);
-        copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable);
+        joueur.setBetPlayer(relance);
+        copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable); // Copie du bet dans JoueurALaTable ou cas ou il se couche
         joueur.setChipsPlayer(joueur.getChipsPlayer() - relance);
         System.out.println(joueur + " relance a " + joueur.getBetPlayer() + " jetons");
-        totalPot = totalPot + relance;
-        minimumARelancer = relance - miseMax;
+        totalPot = totalPot + relance - miseEngagee;
+        System.out.println("Valeur de minimumARelancer / resultatParoleJoueur.get(0) :" + (int) resultatParoleJoueur.get(0)); // 100
+        System.out.println("Valeur de estRelanceBloquee / resultatParoleJoueur.get(1):" + resultatParoleJoueur.get(1)); // false
 
-        //addMontantRelance(joueur, miseMax, montantBigBlind, relance);
-        return minimumARelancer;
+        return resultatParoleJoueur;
     }
 
-    private static void actionDePasser(Joueur joueur, LinkedList<Joueur> joueursDansLeCoup, Joueur[] joueursALaTable) {
+    private static int relanceOverStackAllinAndMAJRelanceMinimum(Joueur joueur, int miseMax, ArrayList resultatParoleJoueur, int relance) {
+        if (relance >= joueur.getChipsPlayer()) {
+            relance = joueur.getChipsPlayer();
+            System.out.println(joueur + " mise all in avec " + relance + " jetons");
+        } else { // SINON LA RELANCE EST COMPRISE ENTRE LE MIN.RELANCE ET LE STACK JOUEUR :
+            // MISE A JOUR DE MIN A RELANCER :
+            if (relance > miseMax) {
+                resultatParoleJoueur.set(0, relance - miseMax);
+                // ON GARGE LA VALEUR MIN A RELANCER ATTACHE AU JOUEUR DANS LE CAS OU UN AUTRE JOUEUR SERAIT AMENER A LE BLOQUER :
+                joueur.setMinimumARelancerApresBetPlayer((int) resultatParoleJoueur.get(0));
+            }
+        }
+        return relance;
+    }
+
+    private static void actionDePasser(Joueur joueur, LinkedList<Joueur> joueursDansLeCoup, Joueur[]
+            joueursALaTable) {
         System.out.println(joueur + " passe son tour ");
         copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable);
         joueursDansLeCoup.remove(joueur);
@@ -924,15 +1072,21 @@ public class Main {
 
     private static void actionDeSuivre(Joueur joueur, int miseMax, Joueur[] joueursALaTable) {
         int add = getMontantSuivre(joueur, miseMax);
-        joueur.setBetPlayer(joueur.getBetPlayer() + add);
-        copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable);
-        joueur.setChipsPlayer(joueur.getChipsPlayer() - add);
 
         if (getMontantSuivre(joueur, miseMax) == 0) {
+            joueur.setBetPlayer(joueur.getBetPlayer() + add);
+            copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable);
+            joueur.setChipsPlayer(joueur.getChipsPlayer() - add);
             System.out.println(joueur + " check ");
-        } else if (joueur.getChipsPlayer() < miseMax) {
+        } else if (joueur.getChipsPlayer() <= miseMax) {
+            joueur.setBetPlayer(joueur.getBetPlayer() + add);
+            copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable);
+            joueur.setChipsPlayer(joueur.getChipsPlayer() - add);
             System.out.println(joueur + " suit et est all in avec " + joueur.getBetPlayer() + " jetons");
         } else {
+            joueur.setBetPlayer(joueur.getBetPlayer() + add);
+            copieMiseJoueurDansLeCoupVersJoueurALaTable(joueur, joueursALaTable);
+            joueur.setChipsPlayer(joueur.getChipsPlayer() - add);
             System.out.println(joueur + " suit " + joueur.getBetPlayer() + " jetons");
         }
         totalPot = totalPot + add;

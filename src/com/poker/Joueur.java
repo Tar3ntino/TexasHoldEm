@@ -13,6 +13,12 @@ public class Joueur {
     int bigBlind = 0;
     boolean isSmallBlind = false;
     boolean isBigBlind = false;
+    boolean joueurBloque = false;
+    int minimumARelancerApresBetPlayer = 0;
+
+    // La variable "minimumARelancerApresBetPlayer" sert a garder en memoire la difference entre la derniere mise sur
+    // la table et la relance du joueur apres sa mise. Elle nous servira pour "debloquer" notre joueur dans le cas ou
+    // un joueur fait une "fausse" relance a tapis.
 
     //Constructeur avec paramètres
     public Joueur(String namePlayer, Card[] main) {
@@ -59,12 +65,20 @@ public class Joueur {
         return cardsCommunesAndHandPlayer;
     }
 
+    public int getMinimumARelancerApresBetPlayer() {
+        return minimumARelancerApresBetPlayer;
+    }
+
     public boolean isBigBlind() {
         return isBigBlind;
     }
 
     public boolean isSmallBlind() {
         return isSmallBlind;
+    }
+
+    public boolean isJoueurBloque() {
+        return joueurBloque;
     }
 
     //**********************************
@@ -113,6 +127,13 @@ public class Joueur {
         this.cardsCommunesAndHandPlayer = cardsCommunesAndHandPlayer;
     }
 
+    public void setMinimumARelancerApresBetPlayer(int minimumARelancerApresBetPlayer) {
+        this.minimumARelancerApresBetPlayer = minimumARelancerApresBetPlayer;
+    }
+
+    public void setJoueurBloque(boolean joueurBloque) {
+        this.joueurBloque = joueurBloque;
+    }
 
     @Override
     public String toString() {

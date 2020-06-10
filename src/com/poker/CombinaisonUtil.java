@@ -77,11 +77,10 @@ public class CombinaisonUtil {
             List<Rang> hauteurs = new ArrayList<>();
             hauteurs.add(rangLePlusNombreux);
             countByRang.keySet().remove(rangLePlusNombreux); // on enleve ensuite le rang du Set de rang
-
             Rang kicker1 = null;
             int kickervalue = 0;
 
-            System.out.print("affichage du KeySet apres remove :" + countByRang.keySet());
+            //System.out.print("affichage du KeySet apres remove :" + countByRang.keySet());
 
             for (Rang rang1 : countByRang.keySet()) {
                 if (rang1.getValue() > kickervalue) {
